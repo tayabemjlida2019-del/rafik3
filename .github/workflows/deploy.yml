@@ -1,0 +1,185 @@
+# ==========================================
+# Al-Rafiq — CI/CD Pipeline
+# ==========================================
+# Triggers on push to main branch
+# Steps: Test → Build Docker Images → Deploy to VPS
+
+name: Deploy Al-Rafiq
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  API_IMAGE: ghcr.io/${{ github.repository }}/api
+  WEB_IMAGE: ghcr.io/${{ github.repository }}/web
+
+jobs:
+  # ==========================================
+  # Job 1: Test
+  # ==========================================
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: rafiq_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/api/package-lock.json
+
+      - name: Install API dependencies
+        run: cd apps/api && npm ci
+
+      - name: Generate Prisma Client
+        run: cd apps/api && npx prisma generate
+
+      - name: Run Prisma Migrations
+        run: cd apps/api && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/rafiq_test?schema=public
+
+      - name: Run API Tests
+        run: cd apps/api && npm test --if-present
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/rafiq_test?schema=public
+          JWT_SECRET: test-secret-key-for-ci
+          JWT_EXPIRES_IN: 15m
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          NODE_ENV: test
+
+      - name: Build Web App
+        run: cd apps/web && npm ci && npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+
+  # ==========================================
+  # Job 2: Build & Push Docker Images
+  # ==========================================
+  build:
+    name: Build Docker Images
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & Push API Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/api
+          push: true
+          tags: |
+            ${{ env.API_IMAGE }}:${{ github.sha }}
+            ${{ env.API_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & Push Web Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/web
+          push: true
+          tags: |
+            ${{ env.WEB_IMAGE }}:${{ github.sha }}
+            ${{ env.WEB_IMAGE }}:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==========================================
+  # Job 3: Deploy to VPS
+  # ==========================================
+  deploy:
+    name: Deploy to Production
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/rafiq
+
+            # Pre-deploy backup
+            docker exec rafiq_db pg_dump -U $DB_USER $DB_NAME > /opt/rafiq/backups/pre-deploy-$(date +%Y%m%d-%H%M%S).sql
+
+            # Pull latest images
+            docker compose -f docker-compose.prod.yml pull api web
+
+            # Rolling restart
+            docker compose -f docker-compose.prod.yml up -d --no-deps api
+            sleep 10
+
+            # Run database migrations
+            docker exec rafiq_api npx prisma migrate deploy
+
+            # Restart web after API is stable
+            docker compose -f docker-compose.prod.yml up -d --no-deps web
+
+            # Cleanup old images
+            docker image prune -f
+
+            # Verify health
+            sleep 5
+            curl -f http://127.0.0.1:3001/api/v1/health || echo "⚠️ API health check failed!"
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "::error::Deployment failed! Check VPS logs."

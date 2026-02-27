@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الرفيق — مركز التحكم</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="dashboard">
+        <header>
+            <div class="logo">الرفيق</div>
+            <h1>مركز التحكم بالمنصة</h1>
+            <p>إدارة وتشغيل جميع الأنظمة من مكان واحد</p>
+        </header>
+
+        <div class="status-grid">
+            <div class="status-card" id="card-docker">
+                <div class="icon">🐳</div>
+                <h3>نظام Docker</h3>
+                <div class="state">--</div>
+            </div>
+            <div class="status-card" id="card-db">
+                <div class="icon">🗄️</div>
+                <h3>قاعدة البيانات</h3>
+                <div class="state">--</div>
+            </div>
+            <div class="status-card" id="card-api">
+                <div class="icon">⚙️</div>
+                <h3>الخلفية (API)</h3>
+                <div class="state">--</div>
+            </div>
+            <div class="status-card" id="card-web">
+                <div class="icon">🌐</div>
+                <h3>الواجهة (Web)</h3>
+                <div class="state">--</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="btn-start" class="btn btn-primary">تشغيل المنصة بالكامل</button>
+            <button id="btn-stop" class="btn btn-danger">إيقاف جميع الأنظمة</button>
+        </div>
+
+        <div class="links">
+            <a href="http://localhost:3005" target="_blank">فتح الموقع</a>
+            <a href="http://localhost:3001/api/docs" target="_blank">وثائق API</a>
+        </div>
+
+        <div class="log-panel" id="log-panel">
+            <div class="log-header">السجلات الحية (Logs)</div>
+            <div class="log-content" id="logs">في انتظار التشغيل...</div>
+        </div>
+
+        <footer>
+            جميع الأنظمة تعمل بتقنيات HTML, CSS و JS متطورة | &copy; 2026
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>
