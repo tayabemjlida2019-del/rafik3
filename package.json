@@ -12,5 +12,9 @@
     "build": "npm run build -w @rafiq/api && npm run build -w @rafiq/web",
     "db:migrate": "npm run db:migrate -w @rafiq/api",
     "db:seed": "npm run db:seed -w @rafiq/api"
+  },
+  "dependencies": {
+    "@nestjs/cli": "^11.0.16",
+    "@nestjs/platform-express": "10.4.0"
   }
 }

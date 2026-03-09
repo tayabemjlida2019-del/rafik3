@@ -52,8 +52,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     login: async (email, password) => {
         const { data } = await api.post('/auth/login', { email, password });
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
         set({
             user: data.user,
             provider: data.provider,
@@ -63,8 +61,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     registerUser: async (userData) => {
         const { data } = await api.post('/auth/register/user', userData);
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
         set({
             user: data.user,
             isAuthenticated: true,
@@ -73,8 +69,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     registerProvider: async (providerData) => {
         const { data } = await api.post('/auth/register/provider', providerData);
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
         set({
             user: data.user,
             provider: data.provider,
@@ -84,23 +78,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     logout: async () => {
         try {
-            const refreshToken = localStorage.getItem('refreshToken');
-            if (refreshToken) {
-                await api.post('/auth/logout', { refreshToken });
-            }
+            await api.post('/auth/logout');
         } catch { }
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
         set({ user: null, provider: null, isAuthenticated: false });
     },
 
     loadUser: async () => {
         try {
-            const token = localStorage.getItem('accessToken');
-            if (!token) {
-                set({ isLoading: false });
-                return;
-            }
             const { data } = await api.get('/auth/me');
             set({
                 user: data.user,
@@ -109,8 +93,6 @@ export const useAuthStore = create<AuthState>((set) => ({
                 isLoading: false,
             });
         } catch {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
             set({ isLoading: false, isAuthenticated: false });
         }
     },

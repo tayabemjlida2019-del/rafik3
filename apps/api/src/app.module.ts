@@ -13,6 +13,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { FoodModule } from './modules/food/food.module';
 import { HealthModule } from './modules/health/health.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
     imports: [
@@ -61,6 +62,7 @@ import { HealthModule } from './modules/health/health.module';
         NotificationsModule,
         FoodModule,
         HealthModule,
+        AiModule,
     ],
     providers: [
         // Global ThrottlerGuard — THIS WAS MISSING! Without it, ThrottlerModule does nothing

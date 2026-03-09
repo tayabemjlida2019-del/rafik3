@@ -513,6 +513,58 @@ model MenuItem {
   @@map("menu_items")
 }
 
+model Place {
+  id            String   @id @default(uuid())
+  nameAr        String   @map("name_ar")
+  nameEn        String   @map("name_en")
+  descriptionAr String   @map("description_ar")
+  descriptionEn String   @map("description_en")
+  latitude      Float
+  longitude     Float
+  city          String
+  wilaya        String
+  categories    String[]
+  bestSeason    String[] @map("best_season")
+  visitDuration Int      @map("visit_duration")
+  crowdLevel    String   @map("crowd_level")
+  isUnesco      Boolean  @default(false) @map("is_unesco")
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  images        Media[]
+  hotels        Hotel[]
+
+  @@index([city])
+  @@index([wilaya])
+  @@map("places")
+}
+
+model Hotel {
+  id        String  @id @default(uuid())
+  name      String
+  latitude  Float
+  longitude Float
+  price     Float
+  rating    Float
+  placeId   String? @map("place_id")
+  place     Place?  @relation(fields: [placeId], references: [id])
+
+  @@index([placeId])
+  @@map("hotels")
+}
+
+model Media {
+  id          String   @id @default(uuid())
+  url         String
+  source      String
+  license     String
+  place       Place?   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  placeId     String?  @map("place_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([placeId])
+  @@map("media")
+}
+
 model Notification {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
