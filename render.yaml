@@ -58,3 +58,12 @@ databases:
   - name: rafiq-redis
     type: redis
     plan: free
+
+  # Cron job to keep API alive (prevents free tier sleep)
+  - type: cron
+    name: rafiq-keep-alive
+    runtime: node
+    plan: free
+    schedule: "*/10 * * * *"
+    buildCommand: "echo 'ready'"
+    startCommand: "node -e \"require('https').get('https://rafiq-api.onrender.com/api/v1/health', r => console.log('Ping OK:', r.statusCode)).on('error', e => console.error('Ping failed:', e.message))\""
