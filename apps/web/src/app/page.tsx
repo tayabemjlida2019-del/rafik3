@@ -131,9 +131,14 @@ export default function HomePage() {
             {/* Luxury Hero Section */}
             <section className="relative pt-48 pb-40 overflow-hidden">
                 <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#121417] via-[#1A1D22]/90 to-[#121417]"></div>
-                    <div className="zellige-pattern absolute inset-0 opacity-[0.03]"></div>
-                    <div className="topographic-lines absolute inset-0 opacity-[0.05]"></div>
+                    <img
+                        src="/images/zellige-bg.png"
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{ filter: 'brightness(0.3) saturate(0.8)' }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#121417]/80 via-[#121417]/50 to-[#121417]"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#121417]/70 to-transparent"></div>
                 </div>
 
                 {/* 3D Map Scene */}

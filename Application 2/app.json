@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "الرفيق",
+    "slug": "al-rafiq",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "scheme": "alrafiq",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alrafiq.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1A1A2E"
+      },
+      "package": "com.alrafiq.mobile"
+    },
+    "extra": {
+      "apiUrl": "https://rafiq-api.onrender.com/api/v1"
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}

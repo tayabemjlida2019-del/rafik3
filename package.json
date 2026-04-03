@@ -16,5 +16,8 @@
   "dependencies": {
     "@nestjs/cli": "^11.0.16",
     "@nestjs/platform-express": "10.4.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6"
   }
 }
