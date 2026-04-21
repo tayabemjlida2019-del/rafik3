@@ -82,12 +82,33 @@ if (!(Test-Path ".env.local")) {
     "NEXT_PUBLIC_API_URL=http://localhost:3001" | Out-File -FilePath ".env.local" -Encoding utf8
 }
 
+# 7. Setup Mobile
+Write-Host-Color "Setting up Mobile App..." "Yellow"
+Set-Location "../../apps/mobile"
+if (!(Test-Path "node_modules")) {
+    npm install
+}
+
 Set-Location "../.."
 
-# 7. Launch Everything
+# 8. Launch Everything
 Write-Host-Color "Launch everything..." "Green"
 Write-Host-Color "API: http://localhost:3001" "Cyan"
 Write-Host-Color "Web: http://localhost:3005" "Cyan"
+Write-Host-Color "Mobile: Open Expo Go on your phone" "Yellow"
+
+$ip = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "Wi-Fi*","Ethernet*" | Select-Object -First 1).IPAddress
+Write-Host-Color "Your Local IP: $ip (Automatically updated in mobile app)" "Magenta"
+
+# Update Mobile API Client IP automatically
+$clientPath = "apps/mobile/src/api/client.ts"
+if (Test-Path $clientPath) {
+    $content = Get-Content $clientPath
+    $updatedContent = $content -replace "const BASE_URL = 'http://.*:3001';", "const BASE_URL = 'http://$ip:3001';"
+    $updatedContent | Set-Content $clientPath
+}
 
 Start-Process "http://localhost:3005"
+
+Write-Host-Color "Tip: Use 'npm run dev:all' to start everything including Mobile." "Cyan"
 npx -y concurrently --kill-others --names "API,WEB" --prefix-colors "magenta,cyan" "npm run dev:api" "npm run dev:web"

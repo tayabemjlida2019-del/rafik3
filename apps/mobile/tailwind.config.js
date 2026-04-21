@@ -6,9 +6,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#10b981", // Emerald 500 (matching your web theme)
+        primary: "#003580",
+        "primary-light": "#0071c2",
+        "primary-dark": "#00264d",
         secondary: "#065f46",
-        accent: "#f59e0b",
+        accent: "#C6A75E",
+        "accent-light": "#e8d5a0",
+        "accent-dark": "#8C6B2E",
+        surface: "#f8f9fa",
+        "surface-dark": "#0a0e1a",
+        "card-dark": "#111827",
+        emerald: "#10b981",
       },
     },
   },

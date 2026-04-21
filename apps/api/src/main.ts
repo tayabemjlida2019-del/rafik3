@@ -80,7 +80,8 @@ async function bootstrap() {
     // START
     // ==========================================
     const port = configService.get<number>('PORT', 3001);
-    await app.listen(port);
-    logger.log(`🚀 Al-Rafiq API running on http://localhost:${port} [${nodeEnv}]`);
+    // Bind to all interfaces so real devices on LAN can reach the API.
+    await app.listen(port, '0.0.0.0');
+    logger.log(`🚀 Al-Rafiq API running on http://0.0.0.0:${port} [${nodeEnv}]`);
 }
 bootstrap();

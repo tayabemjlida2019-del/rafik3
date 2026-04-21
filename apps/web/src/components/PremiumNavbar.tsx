@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
+import { BrandLogoLockup } from '@/components/BrandLogoLockup';
 
 export default function PremiumNavbar() {
     const pathname = usePathname();
@@ -19,71 +21,83 @@ export default function PremiumNavbar() {
     }, [loadUser]);
 
     const navLinks = [
-        { name: 'الـرئيسية', href: '/' },
-        { name: 'الـفنادق', href: '/hotels' },
-        { name: 'الإقـامات', href: '/homes' },
-        { name: 'حجوزاتي', href: '/bookings', protected: true },
+        { name: 'الـرئيسية', href: '/', icon: '🏠' },
+        { name: 'الـفنادق', href: '/hotels', icon: '🏨' },
+        { name: 'الإقـامات', href: '/homes', icon: '🏡' },
+        { name: 'المأكولات', href: '/food', icon: '🍽️' },
+        { name: 'تاكسي', href: '/taxi', icon: '🚕' },
+        { name: 'حجوزاتي', href: '/my-bookings', icon: '📋', protected: true },
     ];
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-700 ${scrolled
-            ? 'bg-[#121417]/80 backdrop-blur-2xl border-b border-[#C6A75E]/10 py-5 shadow-[0_10px_40px_rgba(0,0,0,0.4)]'
-            : 'bg-transparent py-8'
+        <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled
+            ? 'bg-[#0a0e1a]/95 backdrop-blur-2xl border-b border-white/5 py-3 shadow-[0_4px_30px_rgba(0,0,0,0.5)]'
+            : 'bg-transparent py-5'
             }`}>
-            <div className="section-padding flex items-center justify-between">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-4 group">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#C6A75E] to-[#8C6B2E] rounded-xl flex items-center justify-center text-white font-black text-xl shadow-[0_0_20px_rgba(198,167,94,0.3)] group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                        ر
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-2xl font-black text-white tracking-widest leading-none">الـرفـيـق</span>
-                        <span className="text-[10px] text-[#C6A75E] font-bold uppercase tracking-[0.4em] mt-1">EXCELLENCE</span>
-                    </div>
+                <Link href="/" className="flex items-center group hover:opacity-90 transition-opacity">
+                    <BrandLogoLockup variant="full" size="default" />
                 </Link>
 
-                <div className="hidden lg:flex items-center gap-10">
+                {/* Nav Links */}
+                <div className="hidden lg:flex items-center gap-1">
                     {navLinks.map((link) => (
                         (!link.protected || isAuthenticated) && (
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`text-[12px] font-black uppercase tracking-[0.3em] transition-all duration-500 relative py-2 ${pathname === link.href ? 'text-[#C6A75E]' : 'text-slate-400 hover:text-white'
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-bold transition-all duration-300 ${pathname === link.href
+                                        ? 'bg-white/10 text-white'
+                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
+                                <span className="text-sm">{link.icon}</span>
                                 {link.name}
-                                {pathname === link.href && (
-                                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#C6A75E] to-transparent rounded-full shadow-[0_0_10px_#C6A75E]"></span>
-                                )}
                             </Link>
                         )
                     ))}
                 </div>
 
-                {/* Auth Actions */}
-                <div className="hidden lg:flex items-center gap-6">
+                {/* Right Side Actions */}
+                <div className="hidden lg:flex items-center gap-3">
+                    {/* List Property CTA */}
+                    <Link
+                        href="/register?type=provider"
+                        className="text-slate-300 hover:text-white text-xs font-bold transition-all px-3 py-2 rounded-lg hover:bg-white/5"
+                    >
+                        اعرض عقارك
+                    </Link>
+
+                    {/* Currency */}
+                    <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer transition-all">
+                        <span className="text-sm">🇩🇿</span>
+                        <span className="text-xs font-bold text-slate-300">DZD</span>
+                    </div>
+
+                    {/* Auth */}
                     {isAuthenticated ? (
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <div className="flex flex-col items-end">
-                                <span className="text-white text-xs font-black">{user?.fullName}</span>
+                                <span className="text-white text-xs font-bold">{user?.fullName}</span>
                                 <button
                                     onClick={() => logout()}
-                                    className="text-rose-400 text-[10px] font-black uppercase tracking-widest hover:text-rose-300 transition-colors"
+                                    className="text-rose-400 text-[10px] font-bold hover:text-rose-300 transition-colors"
                                 >
                                     تـسجيل الخروج
                                 </button>
                             </div>
-                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-xl border border-white/5 shadow-inner">
-                                👤
-                            </div>
+                            <Link href="/profile" className="w-9 h-9 rounded-full bg-[#003580] flex items-center justify-center text-white text-sm font-bold border border-white/10 hover:bg-[#003580]/80 transition-all">
+                                {user?.fullName?.[0] || '👤'}
+                            </Link>
                         </div>
                     ) : (
-                        <div className="flex items-center gap-6">
-                            <Link href="/login" className="text-white/60 hover:text-white text-xs font-black transition-all uppercase tracking-widest">
-                                دخـول
+                        <div className="flex items-center gap-2">
+                            <Link href="/login" className="text-white text-xs font-bold px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 transition-all">
+                                سـجل الدخول
                             </Link>
-                            <Link href="/register" className="btn-gold text-[10px] py-3.5 px-8 shadow-2xl uppercase tracking-[0.2em]">
-                                انـضـم لـلـنـخـبة
+                            <Link href="/register" className="bg-[#003580] hover:bg-[#00264d] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-[#003580]/30">
+                                سـجل حساب
                             </Link>
                         </div>
                     )}
@@ -92,44 +106,79 @@ export default function PremiumNavbar() {
                 {/* Mobile Menu Toggle */}
                 <button
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="lg:hidden w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white text-2xl"
+                    className="lg:hidden w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white text-xl transition-all hover:bg-white/10"
                 >
-                    {mobileMenuOpen ? '×' : '☰'}
+                    {mobileMenuOpen ? '✕' : '☰'}
                 </button>
             </div>
 
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
-                <div className="lg:hidden fixed inset-0 top-[72px] bg-[#111827] z-[99] p-8 animate-in slide-in-from-top duration-500">
-                    <div className="space-y-6">
+                <div className="lg:hidden fixed inset-0 top-[64px] bg-[#0a0e1a]/98 backdrop-blur-2xl z-[99] animate-fade-in">
+                    <div className="p-6 space-y-2 max-h-[calc(100vh-64px)] overflow-y-auto">
                         {navLinks.map((link) => (
                             (!link.protected || isAuthenticated) && (
                                 <Link
                                     key={link.href}
                                     href={link.href}
                                     onClick={() => setMobileMenuOpen(false)}
-                                    className={`block text-2xl font-black ${pathname === link.href ? 'text-white' : 'text-white/40'
+                                    className={`flex items-center gap-3 px-5 py-4 rounded-2xl text-lg font-bold transition-all ${pathname === link.href
+                                            ? 'bg-white/10 text-white'
+                                            : 'text-white/50 hover:bg-white/5 hover:text-white'
                                         }`}
                                 >
+                                    <span className="text-xl">{link.icon}</span>
                                     {link.name}
                                 </Link>
                             )
                         ))}
 
-                        <div className="pt-8 border-t border-white/5 space-y-6">
+                        <div className="pt-6 border-t border-white/5 space-y-3">
+                            <Link
+                                href="/register?type=provider"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-3 px-5 py-4 rounded-2xl text-slate-400 hover:text-white transition-all font-bold"
+                            >
+                                <span className="text-xl">🏢</span>
+                                اعرض عقارك على الرفيق
+                            </Link>
+
                             {isAuthenticated ? (
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-3xl">👤</div>
+                                <div className="flex items-center gap-4 px-5 py-4">
+                                    <Link
+                                        href="/profile"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="w-14 h-14 rounded-full bg-[#003580] flex items-center justify-center text-white text-2xl font-bold"
+                                    >
+                                        {user?.fullName?.[0] || '👤'}
+                                    </Link>
                                     <div className="flex-1">
                                         <div className="text-white font-black text-xl">{user?.fullName}</div>
-                                        <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="text-rose-400 font-bold uppercase tracking-widest text-sm mt-1">تـسجيل الخروج</button>
+                                        <button
+                                            onClick={() => { logout(); setMobileMenuOpen(false); }}
+                                            className="text-rose-400 font-bold text-sm mt-1"
+                                        >
+                                            تـسجيل الخروج
+                                        </button>
                                     </div>
                                 </div>
                             ) : (
-                                <>
-                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block text-white/50 text-xl font-bold">تـسجيل الـدخول</Link>
-                                    <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="btn-action block w-full text-center py-4 text-sm">انضم إلينا</Link>
-                                </>
+                                <div className="space-y-3 px-5">
+                                    <Link
+                                        href="/login"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block w-full text-center py-4 rounded-2xl border border-white/10 text-white font-bold text-base hover:bg-white/5 transition-all"
+                                    >
+                                        تـسجيل الدخول
+                                    </Link>
+                                    <Link
+                                        href="/register"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block w-full text-center py-4 rounded-2xl bg-[#003580] text-white font-bold text-base shadow-lg"
+                                    >
+                                        إنشاء حساب مجاني
+                                    </Link>
+                                </div>
                             )}
                         </div>
                     </div>

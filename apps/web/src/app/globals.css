@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,23 +15,22 @@
     scroll-behavior: smooth;
   }
 
-  /* Luxury Dark Theme (Graphite & Royal Gold) */
+  /* Rafiik Theme — Booking.com inspired with Algerian Luxury */
   :root {
-    --bg-deep: #121417;
-    /* Graphite Night */
-    --bg-charcoal: #1A1D22;
-    /* Deep Charcoal */
-    --card-luxury: #1F2329;
-    /* Luxury Card */
+    --bg-deep: #0a0e1a;
+    --bg-card: #0f1424;
+    --bg-elevated: #151a2d;
+    --booking-blue: #003580;
+    --booking-blue-light: #0071c2;
+    --booking-blue-hover: #00264d;
     --accent-gold: #C6A75E;
-    /* Royal Gold */
     --accent-bronze: #8C6B2E;
-    /* Deep Bronze */
-    --accent-sand: #BFA56A;
-    /* Desert Sand */
+    --accent-sand: #e8d5a0;
     --text-primary: #E8EAED;
-    --gold-gradient: linear-gradient(135deg, #C6A75E 0%, #8C6B2E 100%);
-    --dark-gradient: linear-gradient(180deg, #1A1D22 0%, #121417 100%);
+    --text-secondary: #94a3b8;
+    --gold-gradient: linear-gradient(135deg, #C6A75E 0%, #e8d5a0 50%, #C6A75E 100%);
+    --blue-gradient: linear-gradient(135deg, #003580 0%, #0071c2 100%);
+    --dark-gradient: linear-gradient(180deg, #0f1424 0%, #0a0e1a 100%);
   }
 
   body {
@@ -49,8 +48,9 @@
   }
 
   .zellige-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3%3Cpath d='M20 0l20 20-20 20L0 20z' fill='%23C6A75E' fill-opacity='0.1'/%3%3C/svg%3");
-    opacity: 0.04;
+    /* Andalusi zellige (8-point star) — subtle */
+    background-image: url("data:image/svg+xml,%3Csvg width='96' height='96' viewBox='0 0 96 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M48 6 L58 22 L78 22 L64 36 L70 56 L52 48 L48 64 L44 48 L26 56 L32 36 L18 22 L38 22 Z' fill='none' stroke='%23C6A75E' stroke-opacity='0.22' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M48 24 L54 34 L66 34 L58 42 L61 54 L50 48 L48 58 L46 48 L35 54 L38 42 L30 34 L42 34 Z' fill='none' stroke='%23C6A75E' stroke-opacity='0.14' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
+    opacity: 0.05;
   }
 
   .topographic-lines {
@@ -67,11 +67,19 @@
   }
 
   .glass-luxury {
-    @apply bg-[#1F2329]/70 backdrop-blur-xl border border-white/5;
+    @apply bg-white/[0.04] backdrop-blur-xl border border-white/5;
+  }
+
+  .glass-booking {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 
   .card-3d {
-    background: var(--card-luxury);
+    background: var(--bg-elevated);
     border: 1px solid rgba(255, 255, 255, 0.03);
     border-radius: 24px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
@@ -86,13 +94,43 @@
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 20px rgba(198, 167, 94, 0.1);
   }
 
+  .card-booking {
+    background: var(--bg-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    @apply transition-all duration-500 ease-out;
+  }
+
+  .card-booking:hover {
+    @apply -translate-y-2;
+    border-color: rgba(198, 167, 94, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(198, 167, 94, 0.15);
+  }
+
   .btn-gold {
     background: var(--gold-gradient);
-    @apply text-white font-bold py-4 px-10 rounded-[20px] transition-all duration-300 shadow-2xl shadow-gold-500/10 hover:scale-105 active:scale-95;
+    background-size: 200% 200%;
+    @apply text-white font-bold py-4 px-10 rounded-[20px] transition-all duration-300 shadow-2xl shadow-yellow-900/20 hover:scale-105 active:scale-95;
+    animation: shimmer-gold 3s ease infinite;
+  }
+
+  @keyframes shimmer-gold {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .btn-booking-blue {
+    background: var(--booking-blue);
+    @apply text-white font-bold py-4 px-10 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95;
+  }
+
+  .btn-booking-blue:hover {
+    background: var(--booking-blue-hover);
   }
 
   .btn-action {
-    @apply bg-blue-600 text-white font-bold py-4 px-10 rounded-[18px] transition-all duration-300 shadow-xl shadow-blue-500/20 hover:bg-blue-700 hover:shadow-blue-500/30 active:scale-95;
+    @apply bg-primary-600 text-white font-bold py-4 px-10 rounded-[18px] transition-all duration-300 shadow-xl shadow-primary-600/20 hover:bg-primary-700 hover:shadow-primary-600/30 active:scale-95;
   }
 
   .glass-dark {
@@ -103,12 +141,19 @@
     @apply bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-primary-600/10 hover:-translate-y-2 transition-all duration-500 ease-out;
   }
 
+  /* Booking-style Rating Badge */
+  .rating-badge {
+    @apply w-9 h-9 flex items-center justify-center text-white font-black text-sm;
+    background: var(--booking-blue);
+    border-radius: 8px 8px 8px 0;
+  }
+
   /* Management Dashboard Components */
   .dashboard-card {
-    background: var(--card-bg);
+    background: var(--bg-elevated);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 24px;
-    @apply transition-all duration-300 hover:border-blue-500/30;
+    @apply transition-all duration-300 hover:border-primary-500/30;
   }
 
   .btn-blue {
@@ -150,7 +195,7 @@
   }
 
   .badge-success {
-    @apply badge bg-emerald-50 text-emerald-700;
+    @apply badge bg-indigo-50 text-indigo-700;
   }
 
   .badge-warning {
@@ -180,15 +225,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  background: #0a0e1a;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  background: #1e293b;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  background: #334155;
 }
 
 /* Star rating */
@@ -198,4 +244,23 @@
 
 .star-empty {
   @apply text-gray-300;
+}
+
+/* Subtle animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out;
 }

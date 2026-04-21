@@ -9,6 +9,10 @@
     "start": "powershell -ExecutionPolicy Bypass -File ./rafiq.ps1",
     "dev:api": "npm run start:dev -w @rafiq/api",
     "dev:web": "npm run dev -w @rafiq/web",
+    "dev:mobile": "npm run start -w application",
+    "dev:all": "npx concurrently --kill-others --names \"API,WEB,MOBILE\" --prefix-colors \"magenta,cyan,yellow\" \"npm run dev:api\" \"npm run dev:web\" \"npm run dev:mobile\"",
+    "fix:mobile": "npx expo start -c -w application",
+    "brand:generate": "node ./scripts/generate-branding.mjs",
     "build": "npm run build -w @rafiq/api && npm run build -w @rafiq/web",
     "db:migrate": "npm run db:migrate -w @rafiq/api",
     "db:seed": "npm run db:seed -w @rafiq/api"
@@ -18,6 +22,7 @@
     "@nestjs/platform-express": "10.4.0"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6"
+    "@types/bcryptjs": "^2.4.6",
+    "sharp": "^0.34.3"
   }
 }

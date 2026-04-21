@@ -204,7 +204,7 @@ export default function ProviderDashboardScreen() {
 
                 <View className="mb-8">
                     <View className="flex-row justify-between items-center mb-4">
-                        <TouchableOpacity onPress={() => router.push('/provider/bookings')}>
+                        <TouchableOpacity onPress={() => router.push('/provider/bookings' as any)}>
                             <Text className="text-primary font-bold">{t('manage')}</Text>
                         </TouchableOpacity>
                         <Text className="text-lg font-bold text-gray-900">{t('recent_bookings')}</Text>
@@ -219,7 +219,7 @@ export default function ProviderDashboardScreen() {
                             <TouchableOpacity
                                 key={booking.id}
                                 className="bg-white p-4 rounded-2xl mb-3 shadow-sm border border-gray-100"
-                                onPress={() => router.push(`/provider/bookings/${booking.id}`)}
+                                onPress={() => router.push({ pathname: '/provider/bookings/[id]' as any, params: { id: booking.id } } as any)}
                             >
                                 <View className="flex-row justify-between items-start mb-2">
                                     <View className={`px-2 py-1 rounded-lg ${getStatusColor(booking.status)}`}>

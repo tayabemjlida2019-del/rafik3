@@ -42,7 +42,7 @@ export default function BookingScreen() {
             });
 
             Alert.alert(t('success'), t('booking_success_message'), [
-                { text: 'OK', onPress: () => router.replace('/(tabs)/bookings') }
+                { text: 'OK', onPress: () => router.replace('/(tabs)/two') }
             ]);
         } catch (error: any) {
             const message = error.response?.data?.message || t('booking_failed');

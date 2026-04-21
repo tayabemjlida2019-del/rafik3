@@ -3,7 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // IMPORTANT: Using http://10.0.2.2:3001 for Android Emulator or your machine's IP for real device
 // We will use a more flexible approach if needed later.
-const BASE_URL = 'http://192.168.246.68:3001';
+// Keep this shape so `rafiq.ps1` can auto-rewrite it.
+const BASE_URL = 'http://192.168.246.68:3001/api/v1';
 
 const api = axios.create({
     baseURL: BASE_URL,
@@ -16,7 +17,9 @@ const api = axios.create({
 api.interceptors.request.use(async (config) => {
     const token = await AsyncStorage.getItem('accessToken');
     if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        config.headers = config.headers ?? {};
+        // Axios v1 headers type can be tricky; normalize to plain object.
+        (config.headers as any).Authorization = `Bearer ${token}`;
     }
     return config;
 });
