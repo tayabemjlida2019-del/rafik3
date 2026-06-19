@@ -1,0 +1,122 @@
+{
+  "name": "⭐ Loyalty Monitor — Daily Customer Analysis",
+  "nodes": [
+    {
+      "id": "cron-trigger",
+      "name": "⏰ Daily Cron — 11 PM Algiers",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [100, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 23 * * *" }]
+        }
+      },
+      "notes": "يعمل كل يوم الساعة 11 مساءً (توقيت الجزائر)"
+    },
+    {
+      "id": "query-top-customers",
+      "name": "📊 Query Top Loyal Customers",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [320, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT u.id, u.full_name, u.phone, u.loyalty_pts, u.loyalty_tier, u.total_spent, u.bookings_count, w.name_ar AS wilaya FROM users u LEFT JOIN wilayas w ON w.id = u.wilaya_id WHERE u.loyalty_pts >= 100 ORDER BY u.loyalty_pts DESC LIMIT 10;",
+        "options": {}
+      },
+      "credentials": { "postgres": { "id": "1", "name": "Rafiq PostgreSQL" } }
+    },
+    {
+      "id": "check-has-data",
+      "name": "Has Loyal Customers?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [540, 300],
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "conditions": [{ "leftValue": "={{ $json.length }}", "rightValue": 0, "operator": { "type": "number", "operation": "gt" } }]
+        }
+      }
+    },
+    {
+      "id": "format-message",
+      "name": "📝 Format CEO Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 200],
+      "parameters": {
+        "jsCode": "const customers = $input.all();\nconst topCustomer = customers[0].json;\n\nconst body = `أفضل ${customers.length} عميل وفي اليوم:\\n` +\n  customers.slice(0,5).map((c, i) =>\n    `${i+1}. ${c.json.full_name || c.json.phone} — ${c.json.loyalty_pts} نقطة — ${parseFloat(c.json.total_spent).toLocaleString('ar-DZ')} دج — ${c.json.wilaya}`\n  ).join('\\n');\n\nreturn [{\n  json: {\n    title: `⭐ تقرير الولاء اليومي — ${customers.length} عميل متميز`,\n    body: body,\n    top_customer: topCustomer,\n    count: customers.length\n  }\n}];"
+      }
+    },
+    {
+      "id": "send-ceo-alert",
+      "name": "🔔 Send Alert to Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [980, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8000/api/alerts/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "type", "value": "loyalty_report" },
+            { "name": "title_ar", "value": "={{ $json.title }}" },
+            { "name": "body_ar", "value": "={{ $json.body }}" },
+            { "name": "severity", "value": "info" },
+            { "name": "metadata", "value": "={{ JSON.stringify({ count: $json.count, top_customer: $json.top_customer }) }}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "query-new-platinum",
+      "name": "💎 Check New Platinum Customers",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [760, 400],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT u.full_name, u.phone, u.total_spent FROM users u WHERE u.loyalty_tier = 'platinum' AND u.updated_at >= NOW() - INTERVAL '24 hours';",
+        "options": {}
+      },
+      "credentials": { "postgres": { "id": "1", "name": "Rafiq PostgreSQL" } }
+    },
+    {
+      "id": "alert-new-platinum",
+      "name": "💎 Alert — New Platinum Customer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [980, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8000/api/alerts/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "type", "value": "new_platinum" },
+            { "name": "title_ar", "value": "=💎 عميل بلاتيني جديد: {{ $json[0].full_name }}" },
+            { "name": "body_ar", "value": "=أنفق {{ parseFloat($json[0].total_spent).toLocaleString() }} دج. يستحق اهتماماً تسويقياً مخصصاً." },
+            { "name": "severity", "value": "warning" }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "⏰ Daily Cron — 11 PM Algiers": { "main": [[{ "node": "📊 Query Top Loyal Customers", "type": "main", "index": 0 }]] },
+    "📊 Query Top Loyal Customers": { "main": [[{ "node": "Has Loyal Customers?", "type": "main", "index": 0 }]] },
+    "Has Loyal Customers?": {
+      "main": [
+        [{ "node": "📝 Format CEO Alert", "type": "main", "index": 0 }, { "node": "💎 Check New Platinum Customers", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "📝 Format CEO Alert": { "main": [[{ "node": "🔔 Send Alert to Dashboard", "type": "main", "index": 0 }]] },
+    "💎 Check New Platinum Customers": { "main": [[{ "node": "💎 Alert — New Platinum Customer", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "timezone": "Africa/Algiers" },
+  "tags": [{ "name": "loyalty" }, { "name": "crm" }, { "name": "rafiq" }]
+}

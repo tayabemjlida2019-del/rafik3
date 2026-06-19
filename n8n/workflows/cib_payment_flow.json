@@ -1,0 +1,180 @@
+{
+  "name": "🏦 CIB Payment → DB → Invoice → Dashboard",
+  "nodes": [
+    {
+      "id": "webhook-cib",
+      "name": "CIB Webhook Receiver",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cib-payment",
+        "responseMode": "onReceived",
+        "responseData": "{ \"received\": true }",
+        "options": {}
+      },
+      "notes": "يستقبل إشعارات الدفع من بوابة CIB الجزائرية"
+    },
+    {
+      "id": "validate-payload",
+      "name": "Validate & Extract CIB Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 300],
+      "parameters": {
+        "jsCode": "const body = $input.first().json;\n\n// استخراج بيانات الدفع\nconst orderId = body.order_id || body.cib_order_id;\nconst status = (body.status || '').toLowerCase();\nconst txnRef = body.transaction_id || body.cib_ref || `TXN-MOCK-${Date.now()}`;\nconst amount = parseFloat(body.amount || 0);\n\n// التحقق من الحقول الأساسية\nif (!orderId) {\n  throw new Error('Missing order_id in CIB payload');\n}\n\nconst isSuccess = ['success', 'paid', 'completed'].includes(status);\nconst isFailed = ['failed', 'error', 'cancelled'].includes(status);\n\nreturn [{\n  json: {\n    order_id: orderId,\n    status: status,\n    is_success: isSuccess,\n    is_failed: isFailed,\n    cib_ref: txnRef,\n    amount_dzd: amount,\n    raw_payload: body,\n    processed_at: new Date().toISOString()\n  }\n}];"
+      }
+    },
+    {
+      "id": "router-status",
+      "name": "Route by Payment Status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [540, 300],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": false },
+                "conditions": [{ "leftValue": "={{ $json.is_success }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+              },
+              "renameOutput": true,
+              "outputKey": "success"
+            },
+            {
+              "conditions": {
+                "options": {},
+                "conditions": [{ "leftValue": "={{ $json.is_failed }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+              },
+              "renameOutput": true,
+              "outputKey": "failed"
+            }
+          ]
+        },
+        "fallbackOutput": "none"
+      }
+    },
+    {
+      "id": "update-db-success",
+      "name": "✅ Update DB — Payment Success",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [760, 180],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE transactions SET status='success', cib_ref='{{ $json.cib_ref }}', paid_at=NOW() WHERE cib_order_id='{{ $json.order_id }}' RETURNING id, booking_id, amount_dzd;",
+        "options": {}
+      },
+      "credentials": { "postgres": { "id": "1", "name": "Rafiq PostgreSQL" } }
+    },
+    {
+      "id": "update-booking-paid",
+      "name": "Update Booking → PAID",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [980, 180],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE bookings SET booking_status='paid', updated_at=NOW() WHERE id = (SELECT booking_id FROM transactions WHERE cib_order_id='{{ $json.order_id }}');",
+        "options": {}
+      },
+      "credentials": { "postgres": { "id": "1", "name": "Rafiq PostgreSQL" } }
+    },
+    {
+      "id": "call-invoice-api",
+      "name": "📄 Generate Invoice via FastAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 180],
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8000/api/payments/webhook/cib",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "order_id", "value": "={{ $json.order_id }}" },
+            { "name": "status", "value": "success" },
+            { "name": "transaction_id", "value": "={{ $json.cib_ref }}" }
+          ]
+        },
+        "options": { "timeout": 10000 }
+      }
+    },
+    {
+      "id": "notify-dashboard-success",
+      "name": "🔔 Alert Dashboard — Payment OK",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 320],
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8000/api/alerts/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "type", "value": "payment_success" },
+            { "name": "title_ar", "value": "✅ دفع ناجح عبر CIB" },
+            { "name": "body_ar", "value": "=تم تأكيد دفعة بقيمة {{ $json.amount_dzd }} دج — المرجع: {{ $json.cib_ref }}" },
+            { "name": "severity", "value": "info" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "update-db-failed",
+      "name": "❌ Update DB — Payment Failed",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [760, 420],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE transactions SET status='failed' WHERE cib_order_id='{{ $json.order_id }}';",
+        "options": {}
+      },
+      "credentials": { "postgres": { "id": "1", "name": "Rafiq PostgreSQL" } }
+    },
+    {
+      "id": "alert-payment-failed",
+      "name": "🚨 Alert Dashboard — Payment Failed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [980, 420],
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8000/api/alerts/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "type", "value": "payment_failed" },
+            { "name": "title_ar", "value": "⚠️ فشل دفع CIB" },
+            { "name": "body_ar", "value": "=فشل دفع الطلب {{ $json.order_id }}" },
+            { "name": "severity", "value": "warning" }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "CIB Webhook Receiver": { "main": [[{ "node": "Validate & Extract CIB Data", "type": "main", "index": 0 }]] },
+    "Validate & Extract CIB Data": { "main": [[{ "node": "Route by Payment Status", "type": "main", "index": 0 }]] },
+    "Route by Payment Status": {
+      "main": [
+        [{ "node": "✅ Update DB — Payment Success", "type": "main", "index": 0 }],
+        [{ "node": "❌ Update DB — Payment Failed", "type": "main", "index": 0 }]
+      ]
+    },
+    "✅ Update DB — Payment Success": { "main": [[{ "node": "Update Booking → PAID", "type": "main", "index": 0 }]] },
+    "Update Booking → PAID": {
+      "main": [[
+        { "node": "📄 Generate Invoice via FastAPI", "type": "main", "index": 0 },
+        { "node": "🔔 Alert Dashboard — Payment OK", "type": "main", "index": 0 }
+      ]]
+    },
+    "❌ Update DB — Payment Failed": { "main": [[{ "node": "🚨 Alert Dashboard — Payment Failed", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "timezone": "Africa/Algiers" },
+  "tags": [{ "name": "payments" }, { "name": "cib" }, { "name": "rafiq" }]
+}

@@ -1,0 +1,57 @@
+# ============================================================
+# RAFIQ Executive Assistant — .gitignore
+# ============================================================
+
+# Environment Variables (DO NOT COMMIT)
+.env
+*.env.local
+*.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+frontend/.next/
+frontend/node_modules/
+npm-debug.log*
+yarn-error.log
+
+# Docker
+*.log
+
+# Invoices & Generated Files
+backend/assets/invoices/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# n8n credentials (sensitive)
+n8n/credentials/
+
+# Large files
+*.mp4
+*.zip
+ffmpeg/
