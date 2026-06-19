@@ -15,7 +15,7 @@ from typing import List
 from config import settings
 from database import create_db_pool, close_db_pool
 from cache import create_redis_pool, close_redis_pool, get_redis
-from routers import bookings, payments, analytics, notifications, wilayas
+from routers import bookings, payments, analytics, notifications, wilayas, ai
 
 # ================================================================
 # Logging
@@ -151,6 +151,7 @@ app.include_router(payments.router, prefix="/api", tags=["💳 المدفوعا�
 app.include_router(analytics.router, prefix="/api/analytics", tags=["📊 التحليلات"])
 app.include_router(notifications.router, prefix="/api/alerts", tags=["🔔 التنبيهات"])
 app.include_router(wilayas.router, prefix="/api/wilayas", tags=["🗺️ الولايات"])
+app.include_router(ai.router, prefix="/api/ai", tags=["🤖 الذكاء الاصطناعي"])
 
 # ================================================================
 # Health Check

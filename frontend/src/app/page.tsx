@@ -15,6 +15,7 @@ import {
 
 // Dynamic import for Algeria Map (SSR disabled — uses D3)
 const AlgeriaMap = dynamic(() => import('../components/AlgeriaMap'), { ssr: false })
+const CommandBox = dynamic(() => import('../components/CommandBox'), { ssr: false })
 
 // ── API Helpers ───────────────────────────────────────────────
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -506,6 +507,9 @@ export default function Dashboard() {
           منصة الرفيق — المساعد الذكي التنفيذي v1.0 | الجزائر 🇩🇿
         </div>
       </main>
+
+      {/* AI Command Box */}
+      <CommandBox />
     </div>
   )
 }
