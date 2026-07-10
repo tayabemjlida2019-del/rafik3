@@ -39,7 +39,7 @@ function goBack(targetScreen) {
 }
 
 function selectRole(role) {
-  if (role === 'driver') showScreen('driver-login-screen');
+  if (role === 'driver') showScreen('login-screen');
   else { showScreen('passenger-screen'); loadRides(); }
 }
 
@@ -85,35 +85,45 @@ async function apiFetch(path, options = {}) {
   return data;
 }
 
-// ─── DRIVER: LOGIN ───────────────────────────────────────────────
-async function driverLogin(e) {
+// ─── LOGIN & ROLES ───────────────────────────────────────────────
+async function handleLogin(e) {
   e.preventDefault();
   hideError('login-error');
   const btn = document.getElementById('btn-login');
   btn.textContent = '...جاري التحقق';
   btn.disabled = true;
 
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+
   try {
-    const data = await apiFetch('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        username: document.getElementById('login-username').value.trim(),
-        password: document.getElementById('login-password').value.trim()
-      })
-    });
-
-    state.currentDriver = data.driver;
-    state.activeRide = data.activeRide;
-
-    document.getElementById('driver-name-display').textContent = data.driver.name;
-    showScreen('driver-dashboard-screen');
-    renderDriverDashboard();
+    if (password) {
+      // Driver login attempt
+      const data = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      });
+      state.currentDriver = data.driver;
+      state.activeRide = data.activeRide;
+      document.getElementById('driver-name-display').textContent = data.driver.name;
+      showScreen('driver-dashboard-screen');
+      renderDriverDashboard();
+    } else {
+      // Passenger flow (if no password provided)
+      showScreen('passenger-screen');
+      loadRides();
+    }
   } catch (err) {
     showError('login-error', err.message);
   } finally {
-    btn.textContent = 'دخول';
+    btn.textContent = 'متابعة';
     btn.disabled = false;
   }
+}
+
+function continueAsGuest() {
+  showScreen('passenger-screen');
+  loadRides();
 }
 
 function driverLogout() {
@@ -121,7 +131,7 @@ function driverLogout() {
   state.activeRide = null;
   document.getElementById('login-username').value = '';
   document.getElementById('login-password').value = '';
-  showScreen('role-screen');
+  showScreen('login-screen');
   showToast('تم تسجيل الخروج');
 }
 
@@ -435,9 +445,9 @@ function shareLocation() {
       display.classList.remove('hidden');
 
       btn.textContent = '✅ تم تحديد الموقع';
-      btn.style.background = 'rgba(34,197,94,.15)';
+      btn.style.background = 'rgba(127,216,166,.15)';
       btn.style.color = 'var(--green)';
-      btn.style.borderColor = 'rgba(34,197,94,.3)';
+      btn.style.borderColor = 'rgba(127,216,166,.3)';
 
       showToast('✅ تم تحديد موقعك بنجاح', 'success');
     },
@@ -527,9 +537,9 @@ document.addEventListener('DOMContentLoaded', () => {
     dep.min = now.toISOString().slice(0, 16);
   }
 
-  // Hide splash after 1.8s then show role screen
+  // Hide splash after 1.8s then show login screen directly
   setTimeout(() => {
     document.getElementById('splash-screen').classList.add('hidden');
-    showScreen('role-screen');
+    showScreen('login-screen');
   }, 1800);
 });

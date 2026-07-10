@@ -7,8 +7,18 @@
   <meta name="theme-color" content="#0a1628" />
   <title>غرداية تاكسي | خدمة النقل بين المدن</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;600;700&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1048/1048314.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
 </head>
 <body>
 
@@ -17,9 +27,9 @@
   <!-- ══════════════════════════════════════ -->
   <div id="splash-screen" class="splash">
     <div class="splash-logo">
-      <div class="splash-icon">🚖</div>
-      <h1 class="splash-title">غرداية تاكسي</h1>
-      <p class="splash-subtitle">خدمة النقل السياحي بين المدن</p>
+      <div class="splash-icon" style="padding:0; overflow:hidden; background:transparent;"><img src="logo.png" style="width:100%; height:100%; object-fit:contain;" alt="Rafiq Logo"></div>
+      <h1 class="splash-title" style="font-family: var(--font-heading);">احجز رحلتك مع الرفيق</h1>
+      <p class="splash-subtitle" style="font-weight: 300;">حدد وجهتك وانطلق</p>
       <div class="splash-spinner"></div>
     </div>
   </div>
@@ -31,9 +41,9 @@
     <div class="role-bg"></div>
     <div class="role-container">
       <div class="role-header">
-        <div class="app-logo">🚖</div>
-        <h1>غرداية تاكسي</h1>
-        <p>من غرداية إلى كل مكان</p>
+        <div class="app-logo" style="padding:0; overflow:hidden; background:transparent;"><img src="logo.png" style="width:100%; height:100%; object-fit:contain;" alt="Rafiq Logo"></div>
+        <h1 style="font-family: var(--font-heading);">احجز رحلتك مع الرفيق</h1>
+        <p style="font-weight: 300;">حدد وجهتك وانطلق</p>
       </div>
       <div class="role-cards">
         <button id="btn-passenger-role" class="role-card" onclick="selectRole('passenger')">
@@ -54,42 +64,45 @@
   </div>
 
   <!-- ══════════════════════════════════════ -->
-  <!-- DRIVER LOGIN SCREEN                   -->
+  <!-- LOGIN SCREEN                          -->
   <!-- ══════════════════════════════════════ -->
-  <div id="driver-login-screen" class="screen hidden">
+  <div id="login-screen" class="screen hidden">
     <div class="topbar">
-      <button class="back-btn" onclick="goBack('role-screen')">→</button>
-      <h2 class="topbar-title">تسجيل دخول السائق</h2>
       <div></div>
+      <h2 class="topbar-title">تسجيل الدخول</h2>
+      <button class="back-btn" style="visibility:hidden">→</button>
     </div>
-    <div class="form-container">
+    <div class="form-container" style="flex:1; justify-content:center; display:flex; flex-direction:column;">
       <div class="form-hero">
-        <div class="form-hero-icon">🔐</div>
-        <h3>مرحباً بك سائقنا</h3>
-        <p>سجّل دخولك لإدارة رحلاتك</p>
+        <div class="app-logo" style="margin-bottom:10px; padding:0; overflow:hidden; background:transparent;"><img src="logo.png" style="width:100%; height:100%; object-fit:contain;" alt="Rafiq Logo"></div>
+        <h3 style="font-family: var(--font-heading); font-size:2rem; color:var(--text-main);">احجز رحلتك مع الرفيق</h3>
+        <p style="font-weight: 300; color:var(--text-muted);">حدد وجهتك وانطلق</p>
       </div>
-      <form id="driver-login-form" onsubmit="driverLogin(event)">
+      <form id="login-form" onsubmit="handleLogin(event)" style="margin-top:20px;">
         <div class="input-group">
-          <label>اسم المستخدم</label>
-          <div class="input-wrap">
-            <span class="input-icon">👤</span>
-            <input id="login-username" type="text" placeholder="أدخل اسم المستخدم" autocomplete="username" required />
+          <label>رقم الهاتف أو اسم المستخدم</label>
+          <div class="phone-row">
+            <div class="cc-chip">🇩🇿 +213</div>
+            <input id="login-username" class="phone-input" type="text" placeholder="أدخل هنا" required />
           </div>
         </div>
-        <div class="input-group">
-          <label>كلمة المرور</label>
-          <div class="input-wrap">
-            <span class="input-icon">🔑</span>
-            <input id="login-password" type="password" placeholder="أدخل كلمة المرور" autocomplete="current-password" required />
+        <div class="input-group" style="margin-top:15px;">
+          <label>كلمة المرور (للسائقين)</label>
+          <div class="phone-row">
+            <div class="cc-chip" style="padding:0 18px;">🔑</div>
+            <input id="login-password" class="phone-input" type="password" placeholder="أدخل كلمة المرور" />
           </div>
         </div>
         <div id="login-error" class="error-msg hidden"></div>
-        <button type="submit" class="btn-primary" id="btn-login">
-          <span>دخول</span>
+        <button type="submit" class="btn-primary" id="btn-login" style="margin-top:25px; padding:15px 20px; font-size:1.1rem; border-radius:14px;">
+          <span>متابعة</span>
         </button>
       </form>
-      <div class="hint-box">
-        <p>💡 للتجربة: <strong>ahmed</strong> / <strong>1234</strong></p>
+      <button class="btn-secondary" style="margin-top:15px; width:100%; padding:15px; border-radius:14px; background:transparent; border:1px solid var(--accent); color:var(--accent);" onclick="continueAsGuest()">
+        تصفح الرحلات كضيف
+      </button>
+      <div class="hint-box" style="margin-top:auto;">
+        <p>💡 للسائق: <strong>ahmed</strong> / <strong>1234</strong></p>
       </div>
     </div>
   </div>

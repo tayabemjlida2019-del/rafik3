@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رفيق — واجهات التطبيق الرئيسية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;600;700&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0E1A; --navy:#131A30; --navy-soft:#1C2540; --line:rgba(212,175,55,0.18);
+    --gold:#D4AF37; --gold-light:#F0D585; --gold-deep:#8A6C1F;
+    --sand:#E7D9B8; --cream:#F6F1E6; --muted:#8B93A8;
+    --good:#7fd8a6; --bad:#e88b8b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:22px; background:#05070d; font-family:'Cairo',sans-serif; padding:40px 16px;
+  }
+  h1,h2,.display{ font-family:'Markazi Text','Cairo',sans-serif; font-weight:700; }
+  .caption{ color:#5b6485; font-size:13px; font-family:'IBM Plex Mono',monospace; direction:ltr; letter-spacing:2px; text-transform:uppercase; }
+  .mono{ font-family:'IBM Plex Mono',monospace; direction:ltr; unicode-bidi:plaintext; }
+
+  /* mode toggle */
+  .segmented{ display:flex; background:var(--navy); border:1px solid var(--line); border-radius:100px; padding:4px; gap:4px; }
+  .segmented button{ border:none; background:none; color:var(--muted); font-family:'Cairo'; font-weight:700; font-size:14px; padding:9px 22px; border-radius:100px; cursor:pointer; }
+  .segmented button.on{ background:linear-gradient(180deg,var(--gold-light),var(--gold)); color:#1a1400; }
+
+  /* device */
+  .device{ width:390px; height:844px; background:#000; border-radius:56px; padding:14px; box-shadow:0 60px 120px rgba(0,0,0,0.6), inset 0 0 0 2px #222; position:relative; }
+  .screen-area{ width:100%; height:100%; background:var(--ink); border-radius:42px; overflow:hidden; position:relative; }
+  .notch{ position:absolute; top:14px; left:50%; transform:translateX(-50%); width:120px; height:28px; background:#000; border-radius:20px; z-index:60; }
+  .statusbar{ position:absolute; top:0; left:0; right:0; height:52px; display:flex; align-items:center; justify-content:space-between; padding:0 30px; z-index:55; color:var(--cream); font-size:14px; font-weight:600; direction:ltr; }
+  .home-indicator{ position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:134px; height:5px; background:var(--cream); opacity:0.5; border-radius:10px; z-index:55; }
+
+  .screens{ position:absolute; inset:0; }
+  .screen{ position:absolute; inset:0; padding:58px 22px 0; display:none; flex-direction:column; overflow:hidden; }
+  .screen.active{ display:flex; }
+  .screen-scroll{ flex:1; overflow-y:auto; padding-bottom:16px; }
+  .screen-scroll::-webkit-scrollbar{ display:none; }
+
+  .top-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; min-height:26px; }
+  .back-btn{ width:34px; height:34px; border-radius:50%; background:var(--navy); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--gold); }
+  .screen-title{ font-size:17px; font-weight:700; color:var(--cream); }
+
+  /* map stage */
+  .map-stage{ height:230px; border-radius:20px; overflow:hidden; position:relative; margin-bottom:16px; background:linear-gradient(160deg,#131a30,#0d1122); flex:0 0 auto; }
+  .map-stage svg{ width:100%; height:100%; }
+
+  /* search */
+  .search-bar{ display:flex; align-items:center; gap:10px; background:var(--navy); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:18px; }
+  .search-bar input{ border:none; background:none; color:var(--cream); font-family:'Cairo'; font-size:14.5px; flex:1; outline:none; }
+  .search-bar input::placeholder{ color:var(--muted); }
+  .section-label{ color:var(--muted); font-size:12.5px; letter-spacing:1px; margin:18px 0 10px; font-family:'IBM Plex Mono'; direction:ltr; text-transform:uppercase; }
+  .dest-item{ display:flex; align-items:center; gap:12px; padding:13px 4px; border-bottom:1px solid rgba(212,175,55,0.08); cursor:pointer; }
+  .dest-item .di-icon{ width:36px; height:36px; border-radius:10px; background:var(--navy); display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .dest-item .di-title{ font-size:14.5px; color:var(--cream); font-weight:600; }
+  .dest-item .di-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+  .btn{ width:100%; padding:15px 20px; border-radius:14px; font-weight:700; font-size:15px; border:none; cursor:pointer; font-family:'Cairo'; text-align:center; }
+  .btn-primary{ background:linear-gradient(180deg,var(--gold-light),var(--gold)); color:#1a1400; }
+  .btn-outline{ background:transparent; border:1.5px solid var(--gold); color:var(--gold); }
+  .btn-danger{ background:transparent; border:1.5px solid var(--bad); color:var(--bad); }
+  .btn-sm{ padding:11px 16px; font-size:13.5px; border-radius:12px; }
+  .bottom-cta{ margin-top:auto; padding-top:12px; }
+
+  /* ride option cards */
+  .ride-opt{ display:flex; align-items:center; gap:14px; border:1.5px solid var(--line); background:var(--navy); border-radius:16px; padding:16px; margin-bottom:12px; cursor:pointer; }
+  .ride-opt.selected{ border-color:var(--gold); background:var(--navy-soft); }
+  .ride-opt .ro-icon{ width:46px; height:46px; border-radius:12px; background:var(--ink); display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .ride-opt .ro-name{ font-weight:700; font-size:14.5px; color:var(--cream); }
+  .ride-opt .ro-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .ride-opt .ro-price{ margin-right:auto; font-family:'IBM Plex Mono'; direction:ltr; color:var(--gold); font-weight:600; font-size:15px; }
+
+  .route-card{ background:var(--navy); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:16px; }
+  .route-row{ display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13.5px; color:var(--cream); }
+  .route-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+  .route-line-v{ width:1px; height:16px; background:var(--line); margin-right:4px; }
+
+  /* searching */
+  .searching-ring{ width:140px; height:140px; border-radius:50%; border:2px solid var(--line); position:relative; display:flex; align-items:center; justify-content:center; margin:0 auto 26px; }
+  .searching-ring::before{ content:""; position:absolute; inset:-14px; border-radius:50%; border:2px solid var(--gold); opacity:0.4; animation:ripple 1.8s infinite ease-out; }
+  @keyframes ripple{ 0%{ transform:scale(0.8); opacity:0.6;} 100%{ transform:scale(1.35); opacity:0;} }
+
+  /* driver card / bottom sheet */
+  .sheet{ background:var(--navy); border:1px solid var(--line); border-radius:20px 20px 0 0; padding:20px; margin-top:auto; }
+  .driver-row{ display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .avatar{ width:52px; height:52px; border-radius:50%; background:linear-gradient(160deg,var(--gold-light),var(--gold-deep)); flex:0 0 auto; }
+  .driver-name{ font-weight:700; font-size:15px; color:var(--cream); }
+  .driver-sub{ font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .icon-circle{ width:44px; height:44px; border-radius:50%; background:var(--ink); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; }
+  .action-row{ display:flex; gap:10px; }
+
+  .eta-badge{ position:absolute; top:16px; right:16px; background:rgba(11,14,26,0.85); border:1px solid var(--line); border-radius:100px; padding:8px 16px; font-family:'IBM Plex Mono'; color:var(--gold); font-size:13px; }
+
+  /* rating */
+  .stars-row{ display:flex; gap:10px; justify-content:center; margin:24px 0; }
+  .stars-row svg{ cursor:pointer; }
+
+  /* history */
+  .history-item{ background:var(--navy); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:12px; }
+  .history-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .history-route{ font-size:14px; font-weight:700; color:var(--cream); }
+  .history-price{ font-family:'IBM Plex Mono'; direction:ltr; color:var(--gold); font-weight:600; font-size:13.5px; }
+  .history-meta{ display:flex; justify-content:space-between; color:var(--muted); font-size:12px; }
+
+  /* wallet */
+  .balance-card{ background:linear-gradient(160deg,var(--navy-soft),var(--navy)); border:1px solid var(--line); border-radius:20px; padding:24px; text-align:center; margin-bottom:20px; }
+  .balance-amount{ font-family:'IBM Plex Mono'; direction:ltr; color:var(--gold); font-size:32px; font-weight:600; }
+  .tx-item{ display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(212,175,55,0.08); font-size:13.5px; }
+
+  /* profile */
+  .profile-header{ display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+  .profile-avatar{ width:64px; height:64px; border-radius:50%; background:linear-gradient(160deg,var(--gold-light),var(--gold-deep)); flex:0 0 auto; position:relative; display:flex; align-items:center; justify-content:center; font-family:'Markazi Text'; font-weight:700; color:#3a2c05; font-size:19px; }
+  .profile-avatar[data-init]::after{ content:attr(data-init); }
+  .profile-name{ font-weight:700; font-size:17px; color:var(--cream); }
+  .profile-sub{ font-size:12.5px; color:var(--muted); margin-top:3px; }
+  .list-item{ display:flex; align-items:center; gap:12px; padding:14px 4px; border-bottom:1px solid rgba(212,175,55,0.08); font-size:14px; color:var(--cream); cursor:pointer; }
+  .list-item .li-icon{ width:36px; height:36px; border-radius:10px; background:var(--navy); display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .verified-badge{ display:inline-flex; align-items:center; gap:5px; background:rgba(127,216,166,0.12); color:var(--good); font-size:11.5px; padding:4px 10px; border-radius:100px; margin-top:6px; }
+
+  /* toggle switch (driver online) */
+  .toggle-wrap{ display:flex; align-items:center; justify-content:space-between; background:var(--navy); border:1px solid var(--line); border-radius:16px; padding:16px 18px; margin-bottom:16px; }
+  .toggle-sw{ width:50px; height:28px; border-radius:100px; background:var(--ink); border:1px solid var(--line); position:relative; cursor:pointer; }
+  .toggle-sw .knob{ width:22px; height:22px; border-radius:50%; background:var(--muted); position:absolute; top:2px; right:3px; transition:all .25s; }
+  .toggle-sw.on{ background:rgba(212,175,55,0.2); border-color:var(--gold); }
+  .toggle-sw.on .knob{ background:var(--gold); right:25px; }
+  .status-text{ font-weight:700; font-size:14.5px; }
+  .status-text.on{ color:var(--gold); }
+  .status-text.off{ color:var(--muted); }
+
+  .earnings-card{ background:var(--navy); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:14px; }
+  .earnings-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .earnings-mini{ background:var(--navy); border:1px solid var(--line); border-radius:14px; padding:14px; text-align:center; }
+  .earnings-mini .val{ font-family:'IBM Plex Mono'; color:var(--gold); font-size:19px; font-weight:600; }
+  .earnings-mini .lbl{ color:var(--muted); font-size:11.5px; margin-top:4px; }
+
+  /* incoming request */
+  .request-card{ background:var(--navy); border:2px solid var(--gold); border-radius:20px; padding:22px; margin-top:auto; margin-bottom:auto; }
+  .timer-ring{ width:56px; height:56px; border-radius:50%; border:3px solid var(--gold); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-family:'IBM Plex Mono'; color:var(--gold); font-weight:600; }
+
+  .bottom-tabs{ display:flex; border-top:1px solid rgba(212,175,55,0.1); background:var(--ink); flex:0 0 auto; }
+  .tab-item{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 0 6px; cursor:pointer; color:var(--muted); }
+  .tab-item.on{ color:var(--gold); }
+  .tab-item span{ font-size:10.5px; font-family:'Cairo'; font-weight:600; }
+
+  .controls{ display:flex; align-items:center; gap:18px; }
+  .nav-btn{ background:var(--navy); border:1px solid var(--line); color:var(--gold); width:46px; height:46px; border-radius:50%; cursor:pointer; font-size:18px; }
+  .nav-btn:disabled{ opacity:0.25; cursor:not-allowed; }
+  .progress-label{ color:var(--muted); font-size:13px; font-family:'IBM Plex Mono'; direction:ltr; }
+
+  /* ===== chat ===== */
+  .chat-scroll{ flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-bottom:12px; }
+  .chat-scroll::-webkit-scrollbar{ display:none; }
+  .chat-day{ text-align:center; color:var(--muted); font-size:11px; font-family:'IBM Plex Mono'; letter-spacing:1px; text-transform:uppercase; margin:6px 0; }
+  .bubble{ max-width:76%; padding:11px 14px; border-radius:16px; font-size:13.5px; line-height:1.5; }
+  .bubble.in{ margin-right:auto; background:var(--navy); border:1px solid var(--line); color:var(--cream); border-bottom-right-radius:4px; }
+  .bubble.out{ margin-left:auto; background:linear-gradient(180deg,var(--gold-light),var(--gold)); color:#1a1400; font-weight:600; border-bottom-left-radius:4px; }
+  .bubble-time{ font-size:10px; margin-top:5px; opacity:0.65; font-family:'IBM Plex Mono'; direction:ltr; text-align:left; }
+  .chat-quick{ display:flex; gap:8px; overflow-x:auto; padding:2px 0 12px; }
+  .chat-quick span{ flex:0 0 auto; background:var(--navy); border:1px solid var(--line); color:var(--gold); font-size:12px; padding:8px 14px; border-radius:100px; white-space:nowrap; cursor:pointer; }
+  .chat-input-bar{ display:flex; align-items:center; gap:10px; background:var(--navy); border:1px solid var(--line); border-radius:100px; padding:8px 8px 8px 16px; margin-top:auto; }
+  .chat-input-bar input{ flex:1; border:none; background:none; outline:none; color:var(--cream); font-family:'Cairo'; font-size:13.5px; }
+  .chat-input-bar input::placeholder{ color:var(--muted); }
+  .chat-send{ width:38px; height:38px; border-radius:50%; border:none; background:linear-gradient(180deg,var(--gold-light),var(--gold)); color:#1a1400; font-size:16px; cursor:pointer; flex:0 0 auto; display:flex; align-items:center; justify-content:center; }
+
+  /* ===== trip detail / receipt ===== */
+  .trip-map-mini{ height:120px; border-radius:16px; overflow:hidden; margin-bottom:16px; background:linear-gradient(160deg,#131a30,#0d1122); }
+  .trip-map-mini svg{ width:100%; height:100%; }
+  .receipt-card{ background:var(--navy); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px; }
+  .receipt-row{ display:flex; justify-content:space-between; padding:8px 0; font-size:13.5px; color:var(--cream); }
+  .receipt-row.muted{ color:var(--muted); font-size:12.5px; }
+  .receipt-divider{ border-top:1px dashed rgba(212,175,55,0.25); margin:8px 0; }
+  .receipt-total{ display:flex; justify-content:space-between; padding-top:10px; font-weight:700; font-size:15.5px; color:var(--gold); font-family:'IBM Plex Mono'; direction:ltr; }
+  .receipt-total span:first-child{ direction:rtl; font-family:'Cairo'; color:var(--cream); }
+
+  /* ===== support ===== */
+  .support-hero{ background:linear-gradient(160deg,var(--navy-soft),var(--navy)); border:1px solid var(--line); border-radius:18px; padding:20px; margin-bottom:18px; }
+  .support-actions{ display:flex; gap:10px; margin-top:14px; }
+  .faq-item{ padding:14px 4px; border-bottom:1px solid rgba(212,175,55,0.08); }
+  .faq-q{ display:flex; justify-content:space-between; align-items:center; font-size:14px; color:var(--cream); font-weight:600; cursor:pointer; }
+  .faq-a{ color:var(--muted); font-size:12.5px; line-height:1.6; margin-top:8px; display:none; }
+  .faq-item.open .faq-a{ display:block; }
+  .faq-item.open .faq-chevron{ transform:rotate(180deg); }
+  .faq-chevron{ transition:transform .2s; color:var(--gold); }
+
+  /* ===== documents ===== */
+  .doc-item{ display:flex; align-items:center; gap:12px; background:var(--navy); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; }
+  .doc-item .li-icon{ width:40px; height:40px; }
+  .doc-name{ font-size:14px; font-weight:700; color:var(--cream); }
+  .doc-status{ font-size:11.5px; margin-top:4px; padding:3px 9px; border-radius:100px; display:inline-block; }
+  .doc-status.verified{ background:rgba(127,216,166,0.12); color:var(--good); }
+  .doc-status.pending{ background:rgba(212,175,55,0.14); color:var(--gold); }
+  .doc-status.missing{ background:rgba(232,139,139,0.12); color:var(--bad); }
+  .doc-action{ margin-right:auto; background:none; border:1px solid var(--line); color:var(--gold); font-size:12px; padding:8px 14px; border-radius:100px; cursor:pointer; font-family:'Cairo'; font-weight:600; }
+
+  /* ===== avatar initials + toast ===== */
+  .avatar{ position:relative; display:flex; align-items:center; justify-content:center; font-family:'Markazi Text'; font-weight:700; color:#3a2c05; font-size:16px; }
+  .avatar[data-init]::after{ content:attr(data-init); }
+  .toast{ position:absolute; left:50%; bottom:90px; transform:translateX(-50%) translateY(20px); background:var(--navy); border:1px solid var(--gold); color:var(--cream); font-size:13px; padding:11px 20px; border-radius:100px; opacity:0; pointer-events:none; transition:all .25s; z-index:80; white-space:nowrap; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ===== coordinates entry ===== */
+  .coord-map{ height:150px; border-radius:16px; overflow:hidden; margin-bottom:18px; position:relative; background:#0d1122; }
+  .coord-map svg{ width:100%; height:100%; display:block; }
+  .coord-row{ display:flex; gap:10px; margin-bottom:14px; }
+  .coord-field{ flex:1; background:var(--navy); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .coord-field label{ display:block; font-size:11px; color:var(--muted); margin-bottom:5px; }
+  .coord-field input{ width:100%; border:none; background:none; outline:none; color:var(--cream); font-family:'IBM Plex Mono'; font-size:14px; direction:ltr; text-align:left; }
+  .loc-chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+  .loc-chip{ background:var(--navy); border:1px solid var(--line); color:var(--gold); font-size:12px; padding:8px 14px; border-radius:100px; cursor:pointer; font-family:'Cairo'; }
+
+  /* ===== customers map (driver) ===== */
+  .cust-map{ height:230px; border-radius:16px; overflow:hidden; margin-bottom:16px; position:relative; background:#0d1122; }
+  .cust-map svg{ width:100%; height:100%; display:block; }
+  .cust-pin-label{ font-family:'Cairo'; font-size:8.5px; fill:#E7D9B8; }
+  .cust-row{ display:flex; align-items:center; gap:12px; background:var(--navy); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
+  .cust-dot{ width:10px; height:10px; border-radius:50%; flex:0 0 auto; background:var(--gold); }
+  .cust-name{ font-size:13.5px; font-weight:700; color:var(--cream); }
+  .cust-sub{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+</style>
+</head>
+<body>
+
+<div class="caption">RAFIQ · MAIN APP FLOW</div>
+<div class="segmented">
+  <button id="seg-rider" class="on" onclick="setMode('rider')">راكب</button>
+  <button id="seg-driver" onclick="setMode('driver')">سائق</button>
+</div>
+
+<div class="device">
+  <div class="notch"></div>
+  <div class="screen-area">
+    <div class="statusbar"><span>9:41</span><span>🔋 📶 📡</span></div>
+
+    <div class="screens" id="screens">
+
+      <!-- ============ RIDER: 0 HOME ============ -->
+      <div class="screen active" data-mode="rider" data-idx="0">
+        <div class="screen-scroll">
+          <div class="top-nav"><span class="screen-title">أهلاً، سليم 👋</span><div class="icon-circle">🔔</div></div>
+          <div class="map-stage">
+            <svg viewBox="0 0 350 230"><rect width="350" height="230" fill="#0d1122"/>
+              <g stroke="rgba(212,175,55,0.12)" stroke-width="1"><line x1="0" y1="50" x2="350" y2="40"/><line x1="0" y1="110" x2="350" y2="120"/><line x1="0" y1="170" x2="350" y2="180"/><line x1="70" y1="0" x2="60" y2="230"/><line x1="180" y1="0" x2="190" y2="230"/><line x1="280" y1="0" x2="270" y2="230"/></g>
+              <circle cx="175" cy="115" r="7" fill="#D4AF37"/>
+              <circle cx="175" cy="115" r="16" fill="none" stroke="#D4AF37" stroke-width="1.4" opacity="0.5"/>
+            </svg>
+          </div>
+          <div class="search-bar" onclick="goTo(1)">📍 <input placeholder="إلى أين تريد الذهاب؟" readonly></div>
+          <div class="dest-item" onclick="goTo(11)"><div class="di-icon">🧭</div><div><div class="di-title">مشاركة موقعي بالإحداثيات</div><div class="di-sub">أدخل خط العرض والطول يدوياً</div></div></div>
+          <div class="section-label">الوجهات الأخيرة</div>
+          <div class="dest-item" onclick="goTo(1)"><div class="di-icon">🏙️</div><div><div class="di-title">الجزائر العاصمة</div><div class="di-sub">آخر رحلة قبل 5 أيام</div></div></div>
+          <div class="dest-item" onclick="goTo(1)"><div class="di-icon">🌴</div><div><div class="di-title">ورقلة</div><div class="di-sub">آخر رحلة قبل أسبوعين</div></div></div>
+          <div class="dest-item" onclick="goTo(1)"><div class="di-icon">🏔️</div><div><div class="di-title">تمنراست</div><div class="di-sub">آخر رحلة الشهر الماضي</div></div></div>
+        </div>
+        <div class="bottom-tabs">
+          <div class="tab-item on" onclick="goTo(0)">🏠<span>الرئيسية</span></div>
+          <div class="tab-item" onclick="goTo(5)">🧳<span>رحلاتي</span></div>
+          <div class="tab-item" onclick="goTo(6)">💳<span>المحفظة</span></div>
+          <div class="tab-item" onclick="goTo(7)">👤<span>حسابي</span></div>
+        </div>
+      </div>
+
+      <!-- ============ RIDER: 1 CONFIRM RIDE ============ -->
+      <div class="screen" data-mode="rider" data-idx="1">
+        <div class="top-nav"><button class="back-btn" onclick="goTo(0)">→</button><span class="screen-title">تأكيد الرحلة</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="route-card">
+            <div class="route-row"><div class="route-dot" style="background:var(--gold)"></div>غرداية، حي بونورة</div>
+            <div class="route-line-v"></div>
+            <div class="route-row"><div class="route-dot" style="background:var(--sand)"></div>الجزائر العاصمة</div>
+          </div>
+          <div class="section-label">اختر نوع الرحلة</div>
+          <div class="ride-opt selected" onclick="selectRide(this)"><div class="ro-icon">🚗</div><div><div class="ro-name">اقتصادية</div><div class="ro-sub">4 مقاعد · وصول 6 س 30 د</div></div><div class="ro-price">2,400 دج</div></div>
+          <div class="ride-opt" onclick="selectRide(this)"><div class="ro-icon">🚙</div><div><div class="ro-name">مريحة</div><div class="ro-sub">3 مقاعد · مساحة أوسع</div></div><div class="ro-price">3,100 دج</div></div>
+          <div class="ride-opt" onclick="selectRide(this)"><div class="ro-icon">🚐</div><div><div class="ro-name">خاصة</div><div class="ro-sub">توصيل مباشر بدون توقف</div></div><div class="ro-price">4,600 دج</div></div>
+        </div>
+        <div class="bottom-cta"><button class="btn btn-primary" onclick="goTo(2)">تأكيد الحجز</button></div>
+      </div>
+
+      <!-- ============ RIDER: 2 SEARCHING ============ -->
+      <div class="screen" data-mode="rider" data-idx="2" style="justify-content:center;">
+        <div style="text-align:center">
+          <div class="searching-ring"><span style="font-size:34px">🧭</span></div>
+          <div class="screen-title" style="font-size:18px">جارٍ البحث عن سائق قريب...</div>
+          <div style="color:var(--muted);font-size:13px;margin-top:8px">عادة ما يستغرق هذا أقل من دقيقة</div>
+        </div>
+        <div class="bottom-cta"><button class="btn btn-outline" onclick="goTo(0)">إلغاء البحث</button></div>
+      </div>
+
+      <!-- ============ RIDER: 3 LIVE TRACKING ============ -->
+      <div class="screen" data-mode="rider" data-idx="3">
+        <div style="position:relative;flex:1;margin:-58px -22px 0;border-radius:0;overflow:hidden">
+          <svg viewBox="0 0 390 500" style="width:100%;height:100%;display:block">
+            <rect width="390" height="500" fill="#0d1122"/>
+            <g stroke="rgba(212,175,55,0.1)" stroke-width="1"><line x1="0" y1="90" x2="390" y2="80"/><line x1="0" y1="220" x2="390" y2="230"/><line x1="0" y1="360" x2="390" y2="350"/><line x1="90" y1="0" x2="80" y2="500"/><line x1="220" y1="0" x2="230" y2="500"/><line x1="320" y1="0" x2="330" y2="500"/></g>
+            <path d="M70 430 C 150 380, 120 250, 220 210 S 320 120, 330 90" fill="none" stroke="#D4AF37" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
+            <circle cx="70" cy="430" r="7" fill="#E7D9B8"/>
+            <circle cx="330" cy="90" r="7" fill="#D4AF37"/>
+            <g transform="translate(210,225)"><circle r="14" fill="#D4AF37"/><text x="0" y="5" font-size="14" text-anchor="middle">🚗</text></g>
+          </svg>
+          <div class="eta-badge">⏱ 18 دقيقة</div>
+          <div style="position:absolute;top:60px;right:16px"><button class="back-btn" onclick="goTo(0)" style="background:rgba(11,14,26,0.85)">→</button></div>
+        </div>
+        <div class="sheet">
+          <div class="driver-row">
+            <div class="avatar" data-init="س.ب"></div>
+            <div><div class="driver-name">سليمان بلحاج</div><div class="driver-sub">★ 4.9 · تويوتا كورولا · 12345-113-16</div></div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-outline btn-sm" style="flex:1" onclick="goTo(4)">📞 اتصال</button>
+            <button class="btn btn-outline btn-sm" style="flex:1" onclick="goTo(8)">💬 رسالة</button>
+            <button class="btn btn-danger btn-sm" style="flex:0 0 auto;padding:11px 18px" onclick="showToastMsg('تم إرسال تنبيه SOS')">SOS</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ RIDER: 4 RATING ============ -->
+      <div class="screen" data-mode="rider" data-idx="4" style="justify-content:center;text-align:center">
+        <div class="avatar" data-init="س.ب" style="width:74px;height:74px;margin:0 auto 16px;font-size:22px"></div>
+        <div class="screen-title" style="font-size:19px">وصلت بأمان يا سليم!</div>
+        <div style="color:var(--muted);font-size:13.5px;margin-top:6px">كيف كانت رحلتك مع سليمان؟</div>
+        <div class="stars-row">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#D4AF37"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21 7.5 13.5 2 9h7z"/></svg>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#D4AF37"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21 7.5 13.5 2 9h7z"/></svg>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#D4AF37"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21 7.5 13.5 2 9h7z"/></svg>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#D4AF37"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21 7.5 13.5 2 9h7z"/></svg>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.4"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21 7.5 13.5 2 9h7z"/></svg>
+        </div>
+        <div class="bottom-cta"><button class="btn btn-primary" onclick="goTo(0)">إنهاء</button></div>
+      </div>
+
+      <!-- ============ RIDER: 5 HISTORY ============ -->
+      <div class="screen" data-mode="rider" data-idx="5">
+        <div class="top-nav"><span class="screen-title">رحلاتي</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="history-item" onclick="goTo(9)" style="cursor:pointer"><div class="history-top"><div class="history-route">غرداية → الجزائر العاصمة</div><div class="history-price">2,400 دج</div></div><div class="history-meta"><span>5 يوليو 2026</span><span>★ 4.9</span></div></div>
+          <div class="history-item" onclick="goTo(9)" style="cursor:pointer"><div class="history-top"><div class="history-route">غرداية → ورقلة</div><div class="history-price">1,100 دج</div></div><div class="history-meta"><span>27 يونيو 2026</span><span>★ 5.0</span></div></div>
+          <div class="history-item" onclick="goTo(9)" style="cursor:pointer"><div class="history-top"><div class="history-route">غرداية → تمنراست</div><div class="history-price">5,300 دج</div></div><div class="history-meta"><span>14 يونيو 2026</span><span>★ 4.8</span></div></div>
+        </div>
+        <div class="bottom-tabs">
+          <div class="tab-item" onclick="goTo(0)">🏠<span>الرئيسية</span></div>
+          <div class="tab-item on" onclick="goTo(5)">🧳<span>رحلاتي</span></div>
+          <div class="tab-item" onclick="goTo(6)">💳<span>المحفظة</span></div>
+          <div class="tab-item" onclick="goTo(7)">👤<span>حسابي</span></div>
+        </div>
+      </div>
+
+      <!-- ============ RIDER: 6 WALLET ============ -->
+      <div class="screen" data-mode="rider" data-idx="6">
+        <div class="top-nav"><span class="screen-title">المحفظة</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="balance-card"><div style="color:var(--muted);font-size:12.5px;margin-bottom:8px">الرصيد الحالي</div><div class="balance-amount">3,250 DZD</div><button class="btn btn-primary btn-sm" style="margin-top:16px;width:auto;padding:10px 24px">إضافة رصيد</button></div>
+          <div class="section-label">آخر العمليات</div>
+          <div class="tx-item"><span>رحلة إلى الجزائر العاصمة</span><span class="mono" style="color:var(--bad)">-2,400</span></div>
+          <div class="tx-item"><span>شحن رصيد عبر البطاقة</span><span class="mono" style="color:var(--good)">+5,000</span></div>
+          <div class="tx-item"><span>رحلة إلى ورقلة</span><span class="mono" style="color:var(--bad)">-1,100</span></div>
+        </div>
+        <div class="bottom-tabs">
+          <div class="tab-item" onclick="goTo(0)">🏠<span>الرئيسية</span></div>
+          <div class="tab-item" onclick="goTo(5)">🧳<span>رحلاتي</span></div>
+          <div class="tab-item on" onclick="goTo(6)">💳<span>المحفظة</span></div>
+          <div class="tab-item" onclick="goTo(7)">👤<span>حسابي</span></div>
+        </div>
+      </div>
+
+      <!-- ============ RIDER: 7 PROFILE ============ -->
+      <div class="screen" data-mode="rider" data-idx="7">
+        <div class="top-nav"><span class="screen-title">حسابي</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="profile-header"><div class="profile-avatar" data-init="س.ب"></div><div><div class="profile-name">سليم بن عمر</div><div class="profile-sub">+213 6XX XX XX XX</div></div></div>
+          <div class="list-item"><div class="li-icon">👤</div>البيانات الشخصية</div>
+          <div class="list-item"><div class="li-icon">💳</div>وسائل الدفع</div>
+          <div class="list-item"><div class="li-icon">🔔</div>الإشعارات</div>
+          <div class="list-item"><div class="li-icon">🌐</div>اللغة</div>
+          <div class="list-item" onclick="goTo(10)"><div class="li-icon">🛟</div>المساعدة والدعم</div>
+          <div class="list-item" style="color:var(--bad)"><div class="li-icon">🚪</div>تسجيل الخروج</div>
+        </div>
+        <div class="bottom-tabs">
+          <div class="tab-item" onclick="goTo(0)">🏠<span>الرئيسية</span></div>
+          <div class="tab-item" onclick="goTo(5)">🧳<span>رحلاتي</span></div>
+          <div class="tab-item" onclick="goTo(6)">💳<span>المحفظة</span></div>
+          <div class="tab-item on" onclick="goTo(7)">👤<span>حسابي</span></div>
+        </div>
+      </div>
+
+      <!-- ============ DRIVER: 0 HOME ============ -->
+      <div class="screen" data-mode="driver" data-idx="0">
+        <div class="screen-scroll">
+          <div class="top-nav"><span class="screen-title">أهلاً كابتن سليمان 👋</span><div class="icon-circle">🔔</div></div>
+          <div class="toggle-wrap">
+            <div><span class="status-text on" id="driver-status">متصل الآن</span><div style="color:var(--muted);font-size:11.5px;margin-top:2px">جاهز لاستقبال الرحلات</div></div>
+            <div class="toggle-sw on" id="driver-toggle" onclick="toggleDriver()"><div class="knob"></div></div>
+          </div>
+          <div class="map-stage">
+            <svg viewBox="0 0 350 230"><rect width="350" height="230" fill="#0d1122"/>
+              <g stroke="rgba(212,175,55,0.12)" stroke-width="1"><line x1="0" y1="50" x2="350" y2="40"/><line x1="0" y1="110" x2="350" y2="120"/><line x1="0" y1="170" x2="350" y2="180"/><line x1="70" y1="0" x2="60" y2="230"/><line x1="180" y1="0" x2="190" y2="230"/><line x1="280" y1="0" x2="270" y2="230"/></g>
+              <circle cx="175" cy="115" r="7" fill="#D4AF37"/>
+            </svg>
+          </div>
+          <div class="earnings-grid">
+            <div class="earnings-mini"><div class="val">3,800</div><div class="lbl">أرباح اليوم (دج)</div></div>
+            <div class="earnings-mini"><div class="val">6</div><div class="lbl">رحلات اليوم</div></div>
+          </div>
+          <button class="btn btn-outline" onclick="goTo(1)">محاكاة طلب رحلة جديد ▶</button>
+          <button class="btn btn-outline" style="margin-top:10px" onclick="goTo(8)">🗺️ زبائني على الخريطة</button>
+        </div>
+        <div class="bottom-tabs">
+          <div class="tab-item on" onclick="goTo(0)">🏠<span>الرئيسية</span></div>
+          <div class="tab-item" onclick="goTo(3)">💰<span>الأرباح</span></div>
+          <div class="tab-item" onclick="goTo(4)">👤<span>حسابي</span></div>
+        </div>
+      </div>
+
+      <!-- ============ DRIVER: 1 INCOMING REQUEST ============ -->
+      <div class="screen" data-mode="driver" data-idx="1" style="justify-content:center">
+        <div class="request-card">
+          <div class="timer-ring">12</div>
+          <div class="screen-title" style="text-align:center;font-size:17px;margin-bottom:14px">طلب رحلة جديد</div>
+          <div class="route-card" style="margin-bottom:16px">
+            <div class="route-row"><div class="route-dot" style="background:var(--gold)"></div>حي بونورة، غرداية</div>
+            <div class="route-line-v"></div>
+            <div class="route-row"><div class="route-dot" style="background:var(--sand)"></div>الجزائر العاصمة</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-bottom:18px">
+            <span>راكبان · اقتصادية</span><span class="mono" style="color:var(--gold)">2,400 دج</span>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-danger" onclick="goTo(0)">رفض</button>
+            <button class="btn btn-primary" onclick="goTo(2)">قبول</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ DRIVER: 2 ACTIVE TRIP ============ -->
+      <div class="screen" data-mode="driver" data-idx="2">
+        <div style="position:relative;flex:1;margin:-58px -22px 0;border-radius:0;overflow:hidden">
+          <svg viewBox="0 0 390 500" style="width:100%;height:100%;display:block">
+            <rect width="390" height="500" fill="#0d1122"/>
+            <g stroke="rgba(212,175,55,0.1)" stroke-width="1"><line x1="0" y1="90" x2="390" y2="80"/><line x1="0" y1="220" x2="390" y2="230"/><line x1="0" y1="360" x2="390" y2="350"/><line x1="90" y1="0" x2="80" y2="500"/><line x1="220" y1="0" x2="230" y2="500"/><line x1="320" y1="0" x2="330" y2="500"/></g>
+            <path d="M70 430 C 150 380, 120 250, 220 210 S 320 120, 330 90" fill="none" stroke="#D4AF37" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
+            <circle cx="70" cy="430" r="7" fill="#D4AF37"/>
+            <circle cx="330" cy="90" r="7" fill="#E7D9B8"/>
+          </svg>
+          <div class="eta-badge">📍 6 دقائق للوصول</div>
+          <div style="position:absolute;top:60px;right:16px"><button class="back-btn" onclick="goTo(0)" style="background:rgba(11,14,26,0.85)">→</button></div>
+        </div>
+        <div class="sheet">
+          <div class="driver-row">
+            <div class="avatar" data-init="أ.ك"></div>
+            <div><div class="driver-name">الراكب: أمين ك.</div><div class="driver-sub">حي بونورة → الجزائر العاصمة</div></div>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-outline btn-sm" style="flex:1">📞 اتصال</button>
+            <button class="btn btn-outline btn-sm" style="flex:1" onclick="goTo(5)">💬 رسالة</button>
+          </div>
+          <button class="btn btn-primary btn-sm" style="width:100%;margin-top:10px" onclick="goTo(3)">إنهاء الرحلة</button>
+        </div>
+      </div>
+
+      <!-- ============ DRIVER: 3 EARNINGS ============ -->
+      <div class="screen" data-mode="driver" data-idx="3">
+        <div class="top-nav"><span class="screen-title">الأرباح</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="balance-card"><div style="color:var(--muted);font-size:12.5px;margin-bottom:8px">الرصيد القابل للسحب</div><div class="balance-amount">18,400 DZD</div><button class="btn btn-primary btn-sm" style="margin-top:16px;width:auto;padding:10px 24px">سحب الأرباح</button></div>
+          <div class="earnings-grid">
+            <div class="earnings-mini"><div class="val">3,800</div><div class="lbl">اليوم</div></div>
+            <div class="earnings-mini"><div class="val">24,600</div><div class="lbl">هذا الأسبوع</div></div>
+          </div>
+          <div class="section-label">آخر الرحلات</div>
+          <div class="history-item"><div class="history-top"><div class="history-route">غرداية → الجزائر العاصمة</div><div class="history-price">2,400 دج</div></div><div class="history-meta"><span>اليوم، 10:20</span><span>★ 5.0</span></div></div>
+          <div class="history-item"><div class="history-top"><div class="history-route">غرداية → ورقلة</div><div class="history-price">1,100 دج</div></div><div class="history-meta"><span>اليوم، 08:05</span><span>★ 4.9</span></div></div>
+        </div>
+        <div class="bottom-tabs">
+          <div class="tab-item" onclick="goTo(0)">🏠<span>الرئيسية</span></div>
+          <div class="tab-item on" onclick="goTo(3)">💰<span>الأرباح</span></div>
+          <div class="tab-item" onclick="goTo(4)">👤<span>حسابي</span></div>
+        </div>
+      </div>
+
+      <!-- ============ DRIVER: 4 PROFILE ============ -->
+      <div class="screen" data-mode="driver" data-idx="4">
+        <div class="top-nav"><span class="screen-title">حسابي</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="profile-header">
+            <div class="profile-avatar" data-init="س.ب"></div>
+            <div><div class="profile-name">كابتن سليمان بلحاج</div><div class="profile-sub">تويوتا كورولا · 12345-113-16</div><div class="verified-badge">✓ حساب موثّق</div></div>
+          </div>
+          <div class="list-item"><div class="li-icon">🚗</div>بيانات السيارة</div>
+          <div class="list-item" onclick="goTo(6)"><div class="li-icon">📄</div>الوثائق والتحقق</div>
+          <div class="list-item"><div class="li-icon">💳</div>حساب السحب البنكي</div>
+          <div class="list-item"><div class="li-icon">🔔</div>الإشعارات</div>
+          <div class="list-item" onclick="goTo(7)"><div class="li-icon">🛟</div>المساعدة والدعم</div>
+          <div class="list-item" style="color:var(--bad)"><div class="li-icon">🚪</div>تسجيل الخروج</div>
+        </div>
+        <div class="bottom-tabs">
+          <div class="tab-item" onclick="goTo(0)">🏠<span>الرئيسية</span></div>
+          <div class="tab-item" onclick="goTo(3)">💰<span>الأرباح</span></div>
+          <div class="tab-item on" onclick="goTo(4)">👤<span>حسابي</span></div>
+        </div>
+      </div>
+
+      <!-- ============ RIDER: 8 CHAT ============ -->
+      <div class="screen" data-mode="rider" data-idx="8">
+        <div class="top-nav">
+          <button class="back-btn" onclick="goTo(3)">→</button>
+          <span class="screen-title">سليمان بلحاج</span>
+          <div class="icon-circle">📞</div>
+        </div>
+        <div class="chat-scroll">
+          <div class="chat-day">اليوم، 10:14 ص</div>
+          <div class="bubble in">مرحباً، أنا في الطريق إليك، سأصل خلال 18 دقيقة إن شاء الله<div class="bubble-time">10:14</div></div>
+          <div class="bubble out">تمام يا كابتن، أنا واقف قرب باب المسجد<div class="bubble-time">10:15</div></div>
+          <div class="bubble in">حاضر، السيارة بيضاء تويوتا كورولا<div class="bubble-time">10:15</div></div>
+          <div class="bubble out">شكراً، بانتظارك 🙏<div class="bubble-time">10:16</div></div>
+        </div>
+        <div class="chat-quick">
+          <span onclick="sendQuick(this)">أنا في الطريق</span>
+          <span onclick="sendQuick(this)">أين أنت؟</span>
+          <span onclick="sendQuick(this)">شكراً</span>
+        </div>
+        <div class="chat-input-bar">
+          <input placeholder="اكتب رسالة..." id="chat-input-rider">
+          <button class="chat-send" onclick="sendChat('rider')">➤</button>
+        </div>
+      </div>
+
+      <!-- ============ RIDER: 9 TRIP DETAIL / RECEIPT ============ -->
+      <div class="screen" data-mode="rider" data-idx="9">
+        <div class="top-nav"><button class="back-btn" onclick="goTo(5)">→</button><span class="screen-title">تفاصيل الرحلة</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="trip-map-mini">
+            <svg viewBox="0 0 350 120"><rect width="350" height="120" fill="#0d1122"/>
+              <path d="M30 95 C 100 70, 140 40, 320 25" fill="none" stroke="#D4AF37" stroke-width="2.5" stroke-dasharray="2 8" stroke-linecap="round"/>
+              <circle cx="30" cy="95" r="6" fill="#E7D9B8"/><circle cx="320" cy="25" r="6" fill="#D4AF37"/>
+            </svg>
+          </div>
+          <div class="route-card">
+            <div class="route-row"><div class="route-dot" style="background:var(--gold)"></div>غرداية، حي بونورة</div>
+            <div class="route-line-v"></div>
+            <div class="route-row"><div class="route-dot" style="background:var(--sand)"></div>الجزائر العاصمة</div>
+          </div>
+          <div class="driver-row">
+            <div class="avatar" data-init="س.ب"></div>
+            <div><div class="driver-name">سليمان بلحاج</div><div class="driver-sub">★ 4.9 · تويوتا كورولا · 5 يوليو 2026</div></div>
+          </div>
+          <div class="section-label">إيصال الدفع</div>
+          <div class="receipt-card">
+            <div class="receipt-row"><span>سعر الرحلة الأساسي</span><span class="mono">2,150 دج</span></div>
+            <div class="receipt-row muted"><span>رسوم الخدمة</span><span class="mono">250 دج</span></div>
+            <div class="receipt-row muted"><span>خصم كود ترحيبي</span><span class="mono" style="color:var(--good)">-0 دج</span></div>
+            <div class="receipt-divider"></div>
+            <div class="receipt-total"><span>الإجمالي المدفوع</span><span>2,400 DZD</span></div>
+          </div>
+          <div class="section-label">طريقة الدفع</div>
+          <div class="list-item"><div class="li-icon">💳</div>محفظة رفيق</div>
+        </div>
+        <div class="bottom-cta" style="display:flex;gap:10px">
+          <button class="btn btn-outline" style="flex:1" onclick="showToastMsg('تم إرسال الإيصال')">📤 مشاركة الإيصال</button>
+          <button class="btn btn-outline" style="flex:1" onclick="showToastMsg('سيتم فتح نموذج الشكوى')">🛟 الإبلاغ عن مشكلة</button>
+        </div>
+      </div>
+
+      <!-- ============ RIDER: 10 HELP & SUPPORT ============ -->
+      <div class="screen" data-mode="rider" data-idx="10">
+        <div class="top-nav"><button class="back-btn" onclick="goTo(7)">→</button><span class="screen-title">المساعدة والدعم</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="support-hero">
+            <div class="screen-title" style="font-size:16px">هل تحتاج مساعدة؟</div>
+            <div style="color:var(--muted);font-size:12.5px;margin-top:6px">فريق الدعم متواجد على مدار الساعة لمساعدتك</div>
+            <div class="support-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1" onclick="showToastMsg('جارٍ فتح المحادثة مع الدعم')">💬 محادثة مباشرة</button>
+              <button class="btn btn-outline btn-sm" style="flex:1" onclick="showToastMsg('جارٍ الاتصال بالدعم')">📞 اتصال</button>
+            </div>
+          </div>
+          <div class="section-label">الأسئلة الشائعة</div>
+          <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">كيف ألغي رحلة بعد الحجز؟ <span class="faq-chevron">⌄</span></div>
+            <div class="faq-a">يمكنك الإلغاء من شاشة "جارٍ البحث عن سائق" قبل قبول السائق للرحلة دون أي رسوم إضافية.</div>
+          </div>
+          <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">كيف أسترجع غرضاً نسيته في السيارة؟ <span class="faq-chevron">⌄</span></div>
+            <div class="faq-a">توجه إلى تفاصيل الرحلة واختر "الإبلاغ عن مشكلة" وسنتواصل مع السائق نيابةً عنك.</div>
+          </div>
+          <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">كيف أضيف رصيداً إلى المحفظة؟ <span class="faq-chevron">⌄</span></div>
+            <div class="faq-a">من شاشة المحفظة، اضغط "إضافة رصيد" واختر بطاقة الدفع أو التحويل البريدي.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ DRIVER: 5 CHAT ============ -->
+      <div class="screen" data-mode="driver" data-idx="5">
+        <div class="top-nav">
+          <button class="back-btn" onclick="goTo(2)">→</button>
+          <span class="screen-title">الراكب: أمين ك.</span>
+          <div class="icon-circle">📞</div>
+        </div>
+        <div class="chat-scroll">
+          <div class="chat-day">اليوم، 10:20 ص</div>
+          <div class="bubble in">السلام عليكم كابتن، أنا واقف قرب باب المسجد<div class="bubble-time">10:20</div></div>
+          <div class="bubble out">وعليكم السلام، وصلت قريب منك، دقيقتين<div class="bubble-time">10:21</div></div>
+          <div class="bubble in">تمام، بانتظارك 🙏<div class="bubble-time">10:21</div></div>
+        </div>
+        <div class="chat-quick">
+          <span onclick="sendQuick(this)">وصلت</span>
+          <span onclick="sendQuick(this)">دقيقتين وأصل</span>
+          <span onclick="sendQuick(this)">حاضر</span>
+        </div>
+        <div class="chat-input-bar">
+          <input placeholder="اكتب رسالة..." id="chat-input-driver">
+          <button class="chat-send" onclick="sendChat('driver')">➤</button>
+        </div>
+      </div>
+
+      <!-- ============ DRIVER: 6 DOCUMENTS ============ -->
+      <div class="screen" data-mode="driver" data-idx="6">
+        <div class="top-nav"><button class="back-btn" onclick="goTo(4)">→</button><span class="screen-title">الوثائق والتحقق</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="verified-badge" style="margin-bottom:16px">✓ الحساب موثّق بالكامل</div>
+          <div class="doc-item">
+            <div class="li-icon">🪪</div>
+            <div><div class="doc-name">رخصة السياقة</div><div class="doc-status verified">تم التحقق</div></div>
+            <button class="doc-action" onclick="showToastMsg('عرض المستند')">عرض</button>
+          </div>
+          <div class="doc-item">
+            <div class="li-icon">📇</div>
+            <div><div class="doc-name">البطاقة الرمادية للسيارة</div><div class="doc-status verified">تم التحقق</div></div>
+            <button class="doc-action" onclick="showToastMsg('عرض المستند')">عرض</button>
+          </div>
+          <div class="doc-item">
+            <div class="li-icon">📋</div>
+            <div><div class="doc-name">تأمين السيارة</div><div class="doc-status pending">قيد المراجعة</div></div>
+            <button class="doc-action" onclick="showToastMsg('عرض المستند')">عرض</button>
+          </div>
+          <div class="doc-item">
+            <div class="li-icon">🖼️</div>
+            <div><div class="doc-name">الفحص التقني</div><div class="doc-status missing">غير مرفوع</div></div>
+            <button class="doc-action" onclick="showToastMsg('جارٍ فتح رفع المستند')">رفع الآن</button>
+          </div>
+        </div>
+        <div class="bottom-cta"><button class="btn btn-outline" onclick="showToastMsg('سيتم تحديث الوثائق قريباً')">تحديث الوثائق</button></div>
+      </div>
+
+      <!-- ============ DRIVER: 7 HELP & SUPPORT ============ -->
+      <div class="screen" data-mode="driver" data-idx="7">
+        <div class="top-nav"><button class="back-btn" onclick="goTo(4)">→</button><span class="screen-title">المساعدة والدعم</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="support-hero">
+            <div class="screen-title" style="font-size:16px">مركز مساعدة السائقين</div>
+            <div style="color:var(--muted);font-size:12.5px;margin-top:6px">تواصل معنا لأي استفسار حول الرحلات أو الأرباح</div>
+            <div class="support-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1" onclick="showToastMsg('جارٍ فتح المحادثة مع الدعم')">💬 محادثة مباشرة</button>
+              <button class="btn btn-outline btn-sm" style="flex:1" onclick="showToastMsg('جارٍ الاتصال بالدعم')">📞 اتصال</button>
+            </div>
+          </div>
+          <div class="section-label">الأسئلة الشائعة</div>
+          <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">متى يتم تحويل أرباحي؟ <span class="faq-chevron">⌄</span></div>
+            <div class="faq-a">يمكنك سحب أرباحك في أي وقت من شاشة الأرباح، ويتم التحويل خلال 24 ساعة عمل.</div>
+          </div>
+          <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">ماذا أفعل إذا رفض راكب الدفع؟ <span class="faq-chevron">⌄</span></div>
+            <div class="faq-a">أنهِ الرحلة من التطبيق ثم أبلغ عن المشكلة فوراً، سيتم التواصل معك خلال ساعة.</div>
+          </div>
+          <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">كيف أحدّث وثائق سيارتي؟ <span class="faq-chevron">⌄</span></div>
+            <div class="faq-a">من شاشة "الوثائق والتحقق" اضغط "رفع الآن" أمام أي مستند منتهي الصلاحية.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ RIDER: 11 SHARE COORDINATES ============ -->
+      <div class="screen" data-mode="rider" data-idx="11">
+        <div class="top-nav"><button class="back-btn" onclick="goTo(0)">→</button><span class="screen-title">مشاركة موقعي بالإحداثيات</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="coord-map">
+            <svg viewBox="0 0 350 150">
+              <rect width="350" height="150" fill="#0d1122"/>
+              <g stroke="rgba(212,175,55,0.12)" stroke-width="1"><line x1="0" y1="35" x2="350" y2="30"/><line x1="0" y1="75" x2="350" y2="80"/><line x1="0" y1="115" x2="350" y2="120"/><line x1="60" y1="0" x2="55" y2="150"/><line x1="175" y1="0" x2="180" y2="150"/><line x1="290" y1="0" x2="285" y2="150"/></g>
+              <g id="coord-pin" transform="translate(175,75)"><circle r="7" fill="#D4AF37"/><circle r="16" fill="none" stroke="#D4AF37" stroke-width="1.4" opacity="0.5"/></g>
+            </svg>
+          </div>
+          <div class="coord-row">
+            <div class="coord-field"><label>خط العرض (Lat)</label><input id="lat-input" type="text" value="32.4841" oninput="updateCoordPin()"></div>
+            <div class="coord-field"><label>خط الطول (Lng)</label><input id="lng-input" type="text" value="3.6708" oninput="updateCoordPin()"></div>
+          </div>
+          <div class="section-label">مواقع سريعة</div>
+          <div class="loc-chips">
+            <span class="loc-chip" onclick="setCoordChip(32.4941,3.6708,this)">حي بونورة</span>
+            <span class="loc-chip" onclick="setCoordChip(32.4675,3.6592,this)">وسط المدينة</span>
+            <span class="loc-chip" onclick="setCoordChip(32.5102,3.7014,this)">المنطقة الصناعية</span>
+            <span class="loc-chip" onclick="setCoordChip(32.4520,3.6265,this)">متليلي</span>
+          </div>
+          <div style="color:var(--muted);font-size:12px;line-height:1.6">سيتم إرسال هذه الإحداثيات مباشرةً إلى السائقين القريبين ليتمكنوا من رؤية موقعك بدقة على الخريطة.</div>
+        </div>
+        <div class="bottom-cta"><button class="btn btn-primary" onclick="shareRiderLocation()">📍 تأكيد ومشاركة الموقع</button></div>
+      </div>
+
+      <!-- ============ DRIVER: 8 CUSTOMERS MAP ============ -->
+      <div class="screen" data-mode="driver" data-idx="8">
+        <div class="top-nav"><button class="back-btn" onclick="goTo(0)">→</button><span class="screen-title">زبائني على الخريطة</span><span></span></div>
+        <div class="screen-scroll">
+          <div class="cust-map">
+            <svg viewBox="0 0 350 230" id="cust-map-svg">
+              <rect width="350" height="230" fill="#0d1122"/>
+              <g stroke="rgba(212,175,55,0.12)" stroke-width="1"><line x1="0" y1="50" x2="350" y2="40"/><line x1="0" y1="110" x2="350" y2="120"/><line x1="0" y1="170" x2="350" y2="180"/><line x1="70" y1="0" x2="60" y2="230"/><line x1="180" y1="0" x2="190" y2="230"/><line x1="280" y1="0" x2="270" y2="230"/></g>
+              <g id="cust-pins-group"></g>
+            </svg>
+          </div>
+          <div class="section-label">الزبائن القريبون (<span id="cust-count">0</span>)</div>
+          <div id="cust-list"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="controls">
+  <button class="nav-btn" id="prev-btn" onclick="step(-1)">→</button>
+  <span class="progress-label"><span id="idx-label">1</span> / <span id="total-label">8</span></span>
+  <button class="nav-btn" id="next-btn" onclick="step(1)">←</button>
+</div>
+
+<script>
+  let mode = 'rider';
+  let current = 0;
+  const counts = { rider: 12, driver: 9 };
+
+  function setMode(m){
+    mode = m; current = 0;
+    document.getElementById('seg-rider').classList.toggle('on', m==='rider');
+    document.getElementById('seg-driver').classList.toggle('on', m==='driver');
+    render();
+  }
+  function render(){
+    document.querySelectorAll('.screen').forEach(s=>{
+      const match = s.dataset.mode === mode && Number(s.dataset.idx) === current;
+      s.classList.toggle('active', match);
+    });
+    document.getElementById('idx-label').textContent = current+1;
+    document.getElementById('total-label').textContent = counts[mode];
+    document.getElementById('prev-btn').disabled = current===0;
+    document.getElementById('next-btn').disabled = current===counts[mode]-1;
+  }
+  function goTo(i){ current = i; render(); }
+  function step(d){ current = Math.max(0, Math.min(counts[mode]-1, current+d)); render(); }
+
+  function selectRide(el){
+    document.querySelectorAll('.ride-opt').forEach(o=>o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  let driverOnline = true;
+  function toggleDriver(){
+    driverOnline = !driverOnline;
+    const sw = document.getElementById('driver-toggle');
+    const status = document.getElementById('driver-status');
+    sw.classList.toggle('on', driverOnline);
+    status.classList.toggle('on', driverOnline);
+    status.classList.toggle('off', !driverOnline);
+    status.textContent = driverOnline ? 'متصل الآن' : 'غير متصل';
+  }
+
+  let toastTimer;
+  function showToastMsg(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+  }
+
+  function nowLabel(){
+    const d = new Date();
+    let h = d.getHours(), m = d.getMinutes();
+    const ampm = h >= 12 ? 'م' : 'ص';
+    h = h % 12; if(h === 0) h = 12;
+    return h + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+  }
+
+  function appendBubble(scrollEl, text, isOut){
+    const b = document.createElement('div');
+    b.className = 'bubble ' + (isOut ? 'out' : 'in');
+    b.innerHTML = text + '<div class="bubble-time">' + nowLabel() + '</div>';
+    scrollEl.appendChild(b);
+    scrollEl.scrollTop = scrollEl.scrollHeight;
+    return b;
+  }
+
+  function sendChat(who){
+    const input = document.getElementById('chat-input-' + who);
+    const text = input.value.trim();
+    if(!text) return;
+    const scrollEl = input.closest('.screen').querySelector('.chat-scroll');
+    appendBubble(scrollEl, text, true);
+    input.value = '';
+    setTimeout(()=>{
+      const reply = who === 'rider' ? 'تم استلام رسالتك، جارٍ التنفيذ 👍' : 'تمام، شكراً على التوضيح 🙏';
+      appendBubble(scrollEl, reply, false);
+    }, 1100);
+  }
+
+  function sendQuick(el){
+    const scrollEl = el.closest('.screen').querySelector('.chat-scroll');
+    appendBubble(scrollEl, el.textContent, true);
+    setTimeout(()=> appendBubble(scrollEl, 'تمام 👌', false), 900);
+  }
+
+  // ===== coordinates -> map projection =====
+  const MAP_BOUNDS = { latMin:32.40, latMax:32.55, lngMin:3.58, lngMax:3.75 };
+  function project(lat, lng, w, h){
+    let fx = (lng - MAP_BOUNDS.lngMin) / (MAP_BOUNDS.lngMax - MAP_BOUNDS.lngMin);
+    let fy = 1 - (lat - MAP_BOUNDS.latMin) / (MAP_BOUNDS.latMax - MAP_BOUNDS.latMin);
+    fx = Math.min(1, Math.max(0, fx));
+    fy = Math.min(1, Math.max(0, fy));
+    return { x: 10 + fx * (w - 20), y: 10 + fy * (h - 20) };
+  }
+
+  function updateCoordPin(){
+    const lat = parseFloat(document.getElementById('lat-input').value) || MAP_BOUNDS.latMin;
+    const lng = parseFloat(document.getElementById('lng-input').value) || MAP_BOUNDS.lngMin;
+    const p = project(lat, lng, 350, 150);
+    document.getElementById('coord-pin').setAttribute('transform', 'translate(' + p.x + ',' + p.y + ')');
+  }
+
+  function setCoordChip(lat, lng, el){
+    document.getElementById('lat-input').value = lat;
+    document.getElementById('lng-input').value = lng;
+    document.querySelectorAll('.loc-chip').forEach(c => c.style.borderColor = 'var(--line)');
+    el.style.borderColor = 'var(--gold)';
+    updateCoordPin();
+  }
+
+  // ===== driver: customers on map =====
+  let customerPins = [
+    { id:1, name:'أمين ك.', lat:32.4675, lng:3.6592, status:'بانتظار سائق · اقتصادية' },
+    { id:2, name:'ياسين ب.', lat:32.5102, lng:3.7014, status:'تم تأكيد الحجز' },
+    { id:3, name:'خديجة س.', lat:32.4520, lng:3.6265, status:'بحث عن سائق قريب' }
+  ];
+
+  function renderCustomerPins(){
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const group = document.getElementById('cust-pins-group');
+    const list = document.getElementById('cust-list');
+    if(!group || !list) return;
+    group.innerHTML = '';
+    list.innerHTML = '';
+    document.getElementById('cust-count').textContent = customerPins.length;
+    customerPins.forEach(c => {
+      const p = project(c.lat, c.lng, 350, 230);
+      const fill = c.mine ? '#E7D9B8' : '#D4AF37';
+      const dot = document.createElementNS(svgNS, 'circle');
+      dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); dot.setAttribute('r', 7); dot.setAttribute('fill', fill);
+      const ring = document.createElementNS(svgNS, 'circle');
+      ring.setAttribute('cx', p.x); ring.setAttribute('cy', p.y); ring.setAttribute('r', 13); ring.setAttribute('fill', 'none');
+      ring.setAttribute('stroke', fill); ring.setAttribute('stroke-width', '1.2'); ring.setAttribute('opacity', '0.5');
+      const label = document.createElementNS(svgNS, 'text');
+      label.setAttribute('x', p.x); label.setAttribute('y', p.y - 12);
+      label.setAttribute('text-anchor', 'middle'); label.setAttribute('class', 'cust-pin-label');
+      label.textContent = c.name;
+      group.appendChild(ring); group.appendChild(dot); group.appendChild(label);
+
+      const row = document.createElement('div');
+      row.className = 'cust-row';
+      row.innerHTML = '<div class="cust-dot" style="background:' + fill + '"></div><div><div class="cust-name">' + c.name + '</div><div class="cust-sub">' + c.status + ' · ' + c.lat.toFixed(4) + ', ' + c.lng.toFixed(4) + '</div></div>';
+      list.appendChild(row);
+    });
+  }
+
+  function shareRiderLocation(){
+    const lat = parseFloat(document.getElementById('lat-input').value) || MAP_BOUNDS.latMin;
+    const lng = parseFloat(document.getElementById('lng-input').value) || MAP_BOUNDS.lngMin;
+    customerPins = customerPins.filter(c => !c.mine);
+    customerPins.push({ id:Date.now(), name:'أنت (سليم)', lat, lng, status:'راكب جديد · بانتظار قبول سائق', mine:true });
+    renderCustomerPins();
+    showToastMsg('تم إرسال موقعك، جارٍ عرضه لدى السائق القريب...');
+    setTimeout(() => { setMode('driver'); goTo(8); }, 1200);
+  }
+
+  updateCoordPin();
+  renderCustomerPins();
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "غرداية تاكسي",
+  "short_name": "تاكسي غرداية",
+  "description": "خدمة النقل السياحي بين المدن",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0B0E1A",
+  "theme_color": "#131A30",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1048/1048314.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
