@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ghardaia-taxi-app
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false          # You will paste this manually in Render dashboard
+      - key: PORT
+        value: 10000         # Render assigns this automatically; keep as-is
+      - key: NODE_ENV
+        value: production

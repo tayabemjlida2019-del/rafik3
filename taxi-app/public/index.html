@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="تطبيق سيارات الأجرة السياحية من غرداية — رحلات مشتركة إلى الجزائر العاصمة، وهران، وتونس." />
+  <meta name="theme-color" content="#0a1628" />
+  <title>غرداية تاكسي | خدمة النقل بين المدن</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- SPLASH SCREEN                         -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="splash-screen" class="splash">
+    <div class="splash-logo">
+      <div class="splash-icon">🚖</div>
+      <h1 class="splash-title">غرداية تاكسي</h1>
+      <p class="splash-subtitle">خدمة النقل السياحي بين المدن</p>
+      <div class="splash-spinner"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- ROLE SELECTION SCREEN                 -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="role-screen" class="screen hidden">
+    <div class="role-bg"></div>
+    <div class="role-container">
+      <div class="role-header">
+        <div class="app-logo">🚖</div>
+        <h1>غرداية تاكسي</h1>
+        <p>من غرداية إلى كل مكان</p>
+      </div>
+      <div class="role-cards">
+        <button id="btn-passenger-role" class="role-card" onclick="selectRole('passenger')">
+          <div class="role-card-icon">👤</div>
+          <h2>راكب</h2>
+          <p>احجز مقعدك في رحلة</p>
+          <div class="role-arrow">←</div>
+        </button>
+        <button id="btn-driver-role" class="role-card driver-card" onclick="selectRole('driver')">
+          <div class="role-card-icon">🚗</div>
+          <h2>سائق</h2>
+          <p>أدر رحلاتك</p>
+          <div class="role-arrow">←</div>
+        </button>
+      </div>
+      <p class="role-footer">انطلاقاً من غرداية — الجزائر العاصمة · وهران · تونس</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- DRIVER LOGIN SCREEN                   -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="driver-login-screen" class="screen hidden">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack('role-screen')">→</button>
+      <h2 class="topbar-title">تسجيل دخول السائق</h2>
+      <div></div>
+    </div>
+    <div class="form-container">
+      <div class="form-hero">
+        <div class="form-hero-icon">🔐</div>
+        <h3>مرحباً بك سائقنا</h3>
+        <p>سجّل دخولك لإدارة رحلاتك</p>
+      </div>
+      <form id="driver-login-form" onsubmit="driverLogin(event)">
+        <div class="input-group">
+          <label>اسم المستخدم</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input id="login-username" type="text" placeholder="أدخل اسم المستخدم" autocomplete="username" required />
+          </div>
+        </div>
+        <div class="input-group">
+          <label>كلمة المرور</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔑</span>
+            <input id="login-password" type="password" placeholder="أدخل كلمة المرور" autocomplete="current-password" required />
+          </div>
+        </div>
+        <div id="login-error" class="error-msg hidden"></div>
+        <button type="submit" class="btn-primary" id="btn-login">
+          <span>دخول</span>
+        </button>
+      </form>
+      <div class="hint-box">
+        <p>💡 للتجربة: <strong>ahmed</strong> / <strong>1234</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- DRIVER DASHBOARD                      -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="driver-dashboard-screen" class="screen hidden">
+    <div class="topbar topbar-driver">
+      <div class="driver-avatar" id="driver-avatar-icon">🚗</div>
+      <h2 class="topbar-title" id="driver-name-display">لوحة السائق</h2>
+      <button class="logout-btn" onclick="driverLogout()" title="خروج">↩</button>
+    </div>
+
+    <!-- No Active Ride Panel -->
+    <div id="no-ride-panel" class="content-area hidden">
+      <div class="empty-state">
+        <div class="empty-icon">🛣️</div>
+        <h3>لا توجد رحلة نشطة</h3>
+        <p>أنشئ رحلة جديدة لبدء استقبال الحجوزات</p>
+        <button class="btn-primary" onclick="showCreateRideForm()">+ إنشاء رحلة جديدة</button>
+      </div>
+    </div>
+
+    <!-- Create Ride Form -->
+    <div id="create-ride-panel" class="content-area hidden">
+      <div class="section-header">
+        <h3>🗺️ إنشاء رحلة جديدة</h3>
+        <p>من غرداية إلى وجهتك</p>
+      </div>
+      <form id="create-ride-form" onsubmit="createRide(event)">
+        <div class="input-group">
+          <label>الوجهة</label>
+          <div class="destination-pills">
+            <button type="button" class="dest-pill" data-dest="Algiers" onclick="selectDestination(this)">
+              🏛️ الجزائر العاصمة
+            </button>
+            <button type="button" class="dest-pill" data-dest="Oran" onclick="selectDestination(this)">
+              🌊 وهران
+            </button>
+            <button type="button" class="dest-pill" data-dest="Tunisia" onclick="selectDestination(this)">
+              🌍 تونس
+            </button>
+          </div>
+          <input type="hidden" id="ride-destination" required />
+        </div>
+        <div class="input-group">
+          <label>وقت الانطلاق</label>
+          <div class="input-wrap">
+            <span class="input-icon">🕐</span>
+            <input id="ride-departure" type="datetime-local" required />
+          </div>
+        </div>
+        <div id="create-ride-error" class="error-msg hidden"></div>
+        <button type="submit" class="btn-primary">🚀 إنشاء الرحلة</button>
+      </form>
+    </div>
+
+    <!-- Active Ride Panel -->
+    <div id="active-ride-panel" class="content-area hidden">
+      <div class="ride-status-card">
+        <div class="ride-status-header">
+          <span class="status-badge" id="ride-status-badge">نشطة</span>
+          <span class="ride-dest-label" id="active-ride-dest">الجزائر</span>
+        </div>
+        <div class="ride-meta-grid">
+          <div class="ride-meta-item">
+            <span class="meta-label">⏰ الانطلاق</span>
+            <span class="meta-value" id="active-ride-time">--</span>
+          </div>
+          <div class="ride-meta-item">
+            <span class="meta-label">💺 المقاعد المتاحة</span>
+            <span class="meta-value seats-value" id="active-ride-seats">7</span>
+          </div>
+        </div>
+        <div class="seats-visual" id="seats-visual"></div>
+        <div class="ride-actions">
+          <button class="btn-secondary" onclick="markDeparted()">✅ الرحلة انطلقت</button>
+          <button class="btn-danger" onclick="cancelRide()">🗑️ إلغاء الرحلة</button>
+        </div>
+      </div>
+
+      <!-- Passenger List -->
+      <div class="section-header" style="margin-top:1.5rem">
+        <h3>👥 قائمة الركاب</h3>
+        <button class="refresh-btn" onclick="loadPassengers()">🔄</button>
+      </div>
+      <div id="passenger-list" class="passenger-list">
+        <div class="loading-indicator">جاري التحميل...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- PASSENGER MAIN SCREEN                 -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="passenger-screen" class="screen hidden">
+    <div class="topbar topbar-passenger">
+      <button class="back-btn" onclick="goBack('role-screen')">→</button>
+      <h2 class="topbar-title">الرحلات المتاحة</h2>
+      <button class="refresh-btn" onclick="loadRides()">🔄</button>
+    </div>
+
+    <!-- Origin Badge -->
+    <div class="origin-badge">
+      <span>📍 غرداية</span>
+      <span class="arrow-right">→</span>
+      <span id="filter-label">جميع الوجهات</span>
+    </div>
+
+    <!-- Destination Filter Tabs -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-dest="" onclick="filterRides(this, '')">الكل</button>
+      <button class="filter-tab" data-dest="Algiers" onclick="filterRides(this, 'Algiers')">🏛️ الجزائر</button>
+      <button class="filter-tab" data-dest="Oran" onclick="filterRides(this, 'Oran')">🌊 وهران</button>
+      <button class="filter-tab" data-dest="Tunisia" onclick="filterRides(this, 'Tunisia')">🌍 تونس</button>
+    </div>
+
+    <!-- Ride Cards -->
+    <div id="rides-container" class="rides-container">
+      <div class="loading-indicator">جاري تحميل الرحلات...</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- BOOKING FORM SCREEN                   -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="booking-screen" class="screen hidden">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack('passenger-screen')">→</button>
+      <h2 class="topbar-title">تفاصيل الحجز</h2>
+      <div></div>
+    </div>
+
+    <!-- Ride Summary Card -->
+    <div id="booking-ride-summary" class="booking-summary-card"></div>
+
+    <div class="form-container" style="padding-top:0.5rem">
+      <form id="booking-form" onsubmit="submitBooking(event)">
+        <div class="input-group">
+          <label>الاسم الكامل</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input id="pax-name" type="text" placeholder="أدخل اسمك الكامل" required />
+          </div>
+        </div>
+        <div class="input-group">
+          <label>رقم الهاتف</label>
+          <div class="input-wrap">
+            <span class="input-icon">📞</span>
+            <input id="pax-phone" type="tel" placeholder="05XXXXXXXX" required />
+          </div>
+        </div>
+        <div class="input-group">
+          <label>عدد المقاعد</label>
+          <div class="seats-selector">
+            <button type="button" class="seat-btn" onclick="changeSeatCount(-1)">−</button>
+            <span id="seat-count-display" class="seat-count">1</span>
+            <button type="button" class="seat-btn" onclick="changeSeatCount(1)">+</button>
+          </div>
+        </div>
+
+        <!-- Location Share -->
+        <div class="location-card">
+          <div class="location-card-header">
+            <span>📍 موقعك الحالي</span>
+            <span id="location-status" class="location-status">غير مُحدَّد</span>
+          </div>
+          <p class="location-hint">شارك موقعك حتى يتمكن السائق من إيجادك بسهولة</p>
+          <button type="button" id="btn-share-location" class="btn-location" onclick="shareLocation()">
+            📡 تحديد موقعي الآن
+          </button>
+          <div id="location-display" class="location-coords hidden"></div>
+        </div>
+
+        <div id="booking-error" class="error-msg hidden"></div>
+        <button type="submit" class="btn-primary btn-book">✅ تأكيد الحجز</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- BOOKING SUCCESS SCREEN                -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="success-screen" class="screen hidden">
+    <div class="success-container">
+      <div class="success-icon-wrap">
+        <div class="success-icon">✅</div>
+      </div>
+      <h2>تم الحجز بنجاح!</h2>
+      <p id="success-message">تم تسجيل حجزك. في انتظار انطلاق الرحلة.</p>
+      <div id="success-details" class="success-details"></div>
+      <button class="btn-primary" onclick="goBack('passenger-screen')">العودة للرحلات</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TOAST NOTIFICATION                    -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
